@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carlamitertech - Sistema de Agendamento</title>
+    <title>Carlamitertech - Caixa de Supermercado & PDV</title>
     
-    <!-- Bibliotecas externas para geração de PDF (jsPDF + AutoTable) -->
+    <!-- Biblioteca HTML5 QR Code / Barcode Scanner -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <!-- Bibliotecas para exportação e relatórios (PDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
@@ -15,13 +18,12 @@
             margin: 0; 
             padding: 20px; 
             background-color: #f4f4f9;
-            min-height: 100vh;
             box-sizing: border-box;
         }
 
         .cabecalho-principal {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .cabecalho-principal h1 {
@@ -38,22 +40,55 @@
             font-size: 16px;
         }
 
+        /* Sistema de Abas */
+        .abas-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-aba {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .btn-aba.ativo {
+            background-color: #007bff;
+        }
+
+        .painel {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .painel.ativo {
+            display: block;
+        }
+
         h2 { 
             color: #333; 
-            margin-top: 20px; 
+            margin-top: 0; 
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
         }
 
         form { 
-            background: #ffffff; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-            max-width: 500px; 
-            margin-bottom: 30px; 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             gap: 15px; 
-            color: #333;
+            margin-bottom: 20px;
         }
 
         .campo { 
@@ -68,103 +103,69 @@
         label { 
             margin-bottom: 5px; 
             font-weight: bold; 
+            color: #444;
         }
 
         input, select { 
-            padding: 8px; 
+            padding: 10px; 
             border: 1px solid #ccc; 
             border-radius: 4px; 
-            box-sizing: border-box; 
             font-size: 14px;
         }
 
-        .btn-container { 
-            grid-column: span 2; 
-        }
-
-        button.btn-salvar { 
+        .btn-acao { 
             background-color: #28a745; 
             color: white; 
-            padding: 10px 15px; 
+            padding: 12px; 
             border: none; 
             border-radius: 4px; 
             cursor: pointer; 
             font-size: 16px; 
-            width: 100%; 
             font-weight: bold;
+            width: 100%;
         }
 
-        button.btn-salvar:hover { 
+        .btn-acao:hover { 
             background-color: #218838; 
         }
 
-        /* Controles da Tabela (Pesquisa e Exportações) */
-        .controles-tabela { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            flex-wrap: wrap;
-            max-width: 100%; 
-            margin-bottom: 15px; 
-            gap: 10px; 
+        .btn-scanner {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 15px;
+            width: 100%;
         }
 
-        .busca-input { 
-            padding: 10px; 
-            width: 280px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            font-size: 14px; 
-            background: #ffffff;
+        .btn-scanner:hover {
+            background-color: #138496;
         }
 
-        .botoes-exportacao {
-            display: flex;
-            gap: 10px;
-        }
-
-        button.btn-excel { 
-            background-color: #1f7246; 
-            color: white; 
-            padding: 10px 15px; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: bold; 
-        }
-
-        button.btn-excel:hover { 
-            background-color: #154c2e; 
-        }
-
-        button.btn-pdf { 
-            background-color: #dc3545; 
-            color: white; 
-            padding: 10px 15px; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: bold; 
-        }
-
-        button.btn-pdf:hover { 
-            background-color: #bd2130; 
+        /* Container da Câmera do Leitor */
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 15px auto;
+            display: none;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .tabela-container { 
             overflow-x: auto; 
-            background: #ffffff; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-            border-radius: 8px; 
-            color: #333;
+            margin-top: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
         }
 
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            min-width: 700px; 
         }
 
         th, td { 
@@ -182,17 +183,48 @@
             background-color: #f1f1f1; 
         }
 
-        .btn-excluir { 
+        .btn-excluir, .btn-cancelar-item { 
             background-color: #dc3545; 
             color: white; 
             border: none; 
-            padding: 5px 10px; 
+            padding: 6px 12px; 
             border-radius: 4px; 
             cursor: pointer; 
         }
 
-        .btn-excluir:hover { 
+        .btn-excluir:hover, .btn-cancelar-item:hover { 
             background-color: #c82333; 
+        }
+
+        /* Estilo do Caixa / PDV */
+        .painel-caixa {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .painel-caixa {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .total-display {
+            background: #1f7246;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .pagamento-box {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -200,207 +232,386 @@
 
     <div class="cabecalho-principal">
         <h1>Carlamitertech</h1>
-        <p>Sistema de Agendamento e Gestão de Clientes</p>
+        <p>Sistema de Caixa e Gestão de Supermercado com Leitor QR / Barcode</p>
     </div>
 
-    <h2>Agendar Novo Cliente</h2>
-    <form id="formAgendamento">
-        <div class="campo cheio">
-            <label for="nome">Nome Completo:</label>
-            <input type="text" id="nome" required placeholder="Ex: João Silva">
-        </div>
-        <div class="campo">
-            <label for="telefone">Telefone:</label>
-            <input type="tel" id="telefone" required placeholder="Ex: (11) 99999-9999">
-        </div>
-        <div class="campo">
-            <label for="cpf">CPF:</label>
-            <input type="text" id="cpf" required placeholder="Ex: 000.000.000-00">
-        </div>
-        <div class="campo">
-            <label for="data">Data do Agendamento:</label>
-            <input type="date" id="data" required>
-        </div>
-        <div class="campo">
-            <label for="horario">Horário Marcado:</label>
-            <input type="time" id="horario" required>
-        </div>
-        <div class="campo cheio">
-            <label for="servico">Serviço / Detalhes:</label>
-            <input type="text" id="servico" required placeholder="Ex: Atendimento / Consulta">
-        </div>
-        <div class="btn-container">
-            <button type="submit" class="btn-salvar">Confirmar Agendamento</button>
-        </div>
-    </form>
+    <!-- Abas de Navegação -->
+    <div class="abas-container">
+        <button class="btn-aba ativo" onclick="mudarAba('caixa', event)">🛒 Frente de Caixa (PDV)</button>
+        <button class="btn-aba" onclick="mudarAba('produtos', event)">📦 Cadastro de Produtos</button>
+    </div>
 
-    <h2>Tabela de Clientes Carlamitertech</h2>
-    
-    <!-- BARRA DE PESQUISA E BOTÕES DE EXPORTAÇÃO -->
-    <div class="controles-tabela">
-        <input type="text" id="busca" class="busca-input" placeholder="🔍 Pesquisar por nome ou CPF...">
-        <div class="botoes-exportacao">
-            <button id="btnExportarExcel" class="btn-excel" onclick="exportarParaExcel()">📊 Exportar para Excel</button>
-            <button id="btnExportarPdf" class="btn-pdf" onclick="exportarParaPDF()">📄 Exportar para PDF</button>
+    <!-- PAINEL 1: FRENTE DE CAIXA (PDV) -->
+    <div id="aba-caixa" class="painel ativo">
+        <h2>Frente de Caixa - Registro e Pagamento</h2>
+        
+        <!-- Botão para Abrir/Fechar Câmera do Leitor -->
+        <button type="button" class="btn-scanner" onclick="alternarLeitor()">📷 Activar / Desactivar Câmera do Leitor (QR / Código de Barras)</button>
+        <div id="reader"></div>
+
+        <div class="painel-caixa">
+            <div>
+                <form id="formVenda" onsubmit="adicionarAoCaixa(event)">
+                    <div class="campo cheio">
+                        <label for="buscaCodigoBarras">Pesquisar por Código / QR Code:</label>
+                        <input type="text" id="buscaCodigoBarras" placeholder="Digite ou escaneie o código..." oninput="buscarPorCodigo()">
+                    </div>
+
+                    <div class="campo cheio">
+                        <label for="produtoSelecionado">Ou Selecione o Produto:</label>
+                        <select id="produtoSelecionado" required onchange="preencherPreco()">
+                            <option value="">Selecione um produto cadastrado...</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="quantidadeVenda">Quantidade:</label>
+                        <input type="number" id="quantidadeVenda" min="1" value="1" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="precoUnitario">Preço Unitário (R$):</label>
+                        <input type="text" id="precoUnitario" disabled style="background: #e9ecef;">
+                    </div>
+
+                    <div class="btn-container cheio">
+                        <button type="submit" class="btn-acao">➕ Registrar / Adicionar Item</button>
+                    </div>
+                </form>
+            </div>
+
+            <div>
+                <div class="total-display" id="displayTotal">
+                    TOTAL: R$ 0,00
+                </div>
+
+                <div class="pagamento-box">
+                    <h3 style="margin-top:0;">Direcionamento para Pagamento</h3>
+                    <div class="campo" style="margin-bottom: 10px;">
+                        <label for="formaPagamento">Forma de Pagamento:</label>
+                        <select id="formaPagamento">
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="Cartão de Débito">Cartão de Débito</option>
+                            <option value="Pix">Pix</option>
+                        </select>
+                    </div>
+                    <div class="campo" style="margin-bottom: 15px;">
+                        <label for="valorRecebido">Valor Recebido (R$):</label>
+                        <input type="number" step="0.01" id="valorRecebido" placeholder="Ex: 50.00">
+                    </div>
+                    <button class="btn-acao" style="background-color: #007bff;" onclick="finalizarPagamento()">💵 Finalizar Pagamento e Emitir Venda</button>
+                </div>
+            </div>
+        </div>
+
+        <h3>Itens Lançados na Compra Atual (Cancelamento de Produtos)</h3>
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qtd</th>
+                        <th>Preço Un.</th>
+                        <th>Subtotal</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoCaixa">
+                    <!-- Itens da venda atual -->
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="tabela-container">
-        <table id="tabelaAgendamentos">
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Telefone</th>
-                    <th>CPF</th>
-                    <th>Data</th>
-                    <th>Horário</th>
-                    <th>Serviço</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="corpoTabela">
-                <!-- Linhas inseridas pelo JavaScript -->
-            </tbody>
-        </table>
+    <!-- PAINEL 2: CADASTRO DE PRODUTOS -->
+    <div id="aba-produtos" class="painel">
+        <h2>Cadastro de Produtos no Banco de Dados</h2>
+        <form id="formProduto" onsubmit="salvarProduto(event)">
+            <div class="campo">
+                <label for="codigoBarras">Código / QR Code:</label>
+                <input type="text" id="codigoBarras" required placeholder="Ex: 789100123">
+            </div>
+            <div class="campo">
+                <label for="nomeProduto">Nome do Produto:</label>
+                <input type="text" id="nomeProduto" required placeholder="Ex: Arroz 5kg">
+            </div>
+            <div class="campo">
+                <label for="precoProduto">Preço de Venda (R$):</label>
+                <input type="number" step="0.01" id="precoProduto" required placeholder="Ex: 24.90">
+            </div>
+            <div class="campo">
+                <label for="categoriaProduto">Categoria:</label>
+                <input type="text" id="categoriaProduto" required placeholder="Ex: Alimentos">
+            </div>
+            <div class="btn-container cheio">
+                <button type="submit" class="btn-acao">Salvar Produto no Banco</button>
+            </div>
+        </form>
+
+        <h3>Produtos Cadastrados</h3>
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome</th>
+                        <th>Preço (R$)</th>
+                        <th>Categoria</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoProdutos">
+                    <!-- Produtos do banco -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        const form = document.getElementById('formAgendamento');
-        const corpoTabela = document.getElementById('corpoTabela');
-        const campoBusca = document.getElementById('busca');
+        let html5QrcodeScanner = null;
 
-        document.addEventListener('DOMContentLoaded', () => carregarAgendamentos());
-
-        campoBusca.addEventListener('input', () => carregarAgendamentos(campoBusca.value));
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const nome = document.getElementById('nome').value;
-            const telefone = document.getElementById('telefone').value;
-            const cpf = document.getElementById('cpf').value;
-            const data = document.getElementById('data').value;
-            const horario = document.getElementById('horario').value;
-            const servico = document.getElementById('servico').value;
-
-            const agendamento = { nome, telefone, cpf, data, horario, servico };
-
-            salvarNoLocalStorage(agendamento);
-            form.reset();
-            carregarAgendamentos();
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarProdutos();
+            atualizarSelectProdutos();
+            carregarCarrinho();
         });
 
-        function obterAgendamentos() {
-            const agendamentos = localStorage.getItem('sistemaAgendamentosCarlamitertech');
-            return agendamentos ? JSON.parse(agendamentos) : [];
+        function mudarAba(aba, evt) {
+            document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
+            document.querySelectorAll('.btn-aba').forEach(b => b.classList.remove('ativo'));
+
+            if (html5QrcodeScanner) {
+                pararLeitor();
+            }
+
+            if(aba === 'caixa') {
+                document.getElementById('aba-caixa').classList.add('ativo');
+            } else {
+                document.getElementById('aba-produtos').classList.add('ativo');
+            }
+            evt.target.classList.add('ativo');
         }
 
-        function salvarNoLocalStorage(agendamento) {
-            const agendamentos = obterAgendamentos();
-            agendamentos.push(agendamento);
-            localStorage.setItem('sistemaAgendamentosCarlamitertech', JSON.stringify(agendamentos));
+        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE COM CÂMERA ---
+        function alternarLeitor() {
+            const readerDiv = document.getElementById('reader');
+            if (readerDiv.style.display === 'block') {
+                pararLeitor();
+            } else {
+                iniciarLeitor();
+            }
         }
 
-        function carregarAgendamentos(filtro = '') {
-            corpoTabela.innerHTML = '';
-            const agendamentos = obterAgendamentos();
-            const termoBusca = filtro.toLowerCase();
+        function iniciarLeitor() {
+            const readerDiv = document.getElementById('reader');
+            readerDiv.style.display = 'block';
 
-            agendamentos.forEach((item, index) => {
-                if (termoBusca && !item.nome.toLowerCase().includes(termoBusca) && !item.cpf.toLowerCase().includes(termoBusca)) {
-                    return; 
-                }
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", 
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                /* verbose= */ false
+            );
 
-                const linha = document.createElement('tr');
-                linha.innerHTML = `
-                    <td>${item.nome}</td>
-                    <td>${item.telefone}</td>
-                    <td>${item.cpf}</td>
-                    <td>${item.data.split('-').reverse().join('/')}</td>
-                    <td>${item.horario}</td>
-                    <td>${item.servico}</td>
-                    <td><button class="btn-excluir" onclick="excluirAgendamento(${index})">Excluir</button></td>
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function pararLeitor() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().catch(error => console.error(error));
+                html5QrcodeScanner = null;
+            }
+            document.getElementById('reader').style.display = 'none';
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById('buscaCodigoBarras').value = decodedText;
+            buscarPorCodigo();
+            pararLeitor();
+            alert(`Produto identificado: Código ${decodedText}`);
+        }
+
+        function onScanFailure(error) {
+            // Falha contínua de leitura enquanto procura o código (silencioso)
+        }
+
+        function buscarPorCodigo() {
+            const codigoBuscado = document.getElementById('buscaCodigoBarras').value.trim();
+            const produtos = obterProdutosDB();
+            const select = document.getElementById('produtoSelecionado');
+
+            const idx = produtos.findIndex(p => p.codigo.toLowerCase() === codigoBuscado.toLowerCase());
+
+            if (idx !== -1) {
+                select.value = idx;
+                preencherPreco();
+            } else {
+                select.value = "";
+                document.getElementById('precoUnitario').value = "";
+            }
+        }
+
+        // --- GERENCIAMENTO DE PRODUTOS (BANCO DE DADOS) ---
+        function obterProdutosDB() {
+            const prod = localStorage.getItem('carlamitertech_produtos');
+            return prod ? JSON.parse(prod) : [];
+        }
+
+        function salvarProduto(e) {
+            e.preventDefault();
+            const codigo = document.getElementById('codigoBarras').value.trim();
+            const nome = document.getElementById('nomeProduto').value;
+            const preco = parseFloat(document.getElementById('precoProduto').value);
+            const categoria = document.getElementById('categoriaProduto').value;
+
+            const produtos = obterProdutosDB();
+            produtos.push({ codigo, nome, preco, categoria });
+            localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
+
+            document.getElementById('formProduto').reset();
+            carregarProdutos();
+            atualizarSelectProdutos();
+            alert("Produto cadastrado com sucesso!");
+        }
+
+        function carregarProdutos() {
+            const corpo = document.getElementById('corpoProdutos');
+            corpo.innerHTML = '';
+            const produtos = obterProdutosDB();
+
+            produtos.forEach((p, index) => {
+                corpo.innerHTML += `
+                    <tr>
+                        <td>${p.codigo}</td>
+                        <td>${p.nome}</td>
+                        <td>R$ ${p.preco.toFixed(2)}</td>
+                        <td>${p.categoria}</td>
+                        <td><button class="btn-excluir" onclick="excluirProduto(${index})">Excluir</button></td>
+                    </tr>
                 `;
-                corpoTabela.appendChild(linha);
             });
         }
 
-        function excluirAgendamento(index) {
-            if(confirm("Tem certeza que deseja excluir este agendamento?")) {
-                const agendamentos = obterAgendamentos();
-                agendamentos.splice(index, 1);
-                localStorage.setItem('sistemaAgendamentosCarlamitertech', JSON.stringify(agendamentos));
-                carregarAgendamentos(campoBusca.value);
+        function excluirProduto(index) {
+            if(confirm("Deseja excluir este produto do cadastro?")) {
+                let produtos = obterProdutosDB();
+                produtos.splice(index, 1);
+                localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
+                carregarProdutos();
+                atualizarSelectProdutos();
             }
         }
 
-        function exportarParaExcel() {
-            const agendamentos = obterAgendamentos();
-            if (agendamentos.length === 0) {
-                alert("Não há dados para exportar!");
+        function atualizarSelectProdutos() {
+            const select = document.getElementById('produtoSelecionado');
+            select.innerHTML = '<option value="">Selecione um produto cadastrado...</option>';
+            const produtos = obterProdutosDB();
+            produtos.forEach((p, idx) => {
+                select.innerHTML += `<option value="${idx}">${p.nome} (${p.codigo}) - R$ ${p.preco.toFixed(2)}</option>`;
+            });
+        }
+
+        function preencherPreco() {
+            const idx = document.getElementById('produtoSelecionado').value;
+            const produtos = obterProdutosDB();
+            if(idx !== "") {
+                document.getElementById('precoUnitario').value = produtos[idx].preco.toFixed(2);
+            } else {
+                document.getElementById('precoUnitario').value = "";
+            }
+        }
+
+        // --- FRENTE DE CAIXA E CARRINHO (REGISTRO E CANCELAMENTO DE ITENS) ---
+        function obterCarrinho() {
+            const carr = localStorage.getItem('carlamitertech_carrinho');
+            return carr ? JSON.parse(carr) : [];
+        }
+
+        function adicionarAoCaixa(e) {
+            e.preventDefault();
+            const idx = document.getElementById('produtoSelecionado').value;
+            const qtd = parseInt(document.getElementById('quantidadeVenda').value);
+            
+            if(idx === "") {
+                alert("Por favor, selecione ou escaneie um produto válido!");
                 return;
             }
 
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            csvContent += "Nome;Telefone;CPF;Data;Horario;Servico\r\n";
+            const produtos = obterProdutosDB();
+            const produtoEscolhido = produtos[idx];
 
-            agendamentos.forEach(item => {
-                const dataFormatada = item.data.split('-').reverse().join('/');
-                const linha = `"${item.nome}";"${item.telefone}";"${item.cpf}";"${dataFormatada}";"${item.horario}";"${item.servico}"`;
-                csvContent += linha + "\r\n";
+            let carrinho = obterCarrinho();
+            carrinho.push({
+                nome: produtoEscolhido.nome,
+                qtd: qtd,
+                preco: produtoEscolhido.preco,
+                subtotal: produtoEscolhido.preco * qtd
             });
 
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "carlamitertech_clientes.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            localStorage.setItem('carlamitertech_carrinho', JSON.stringify(carrinho));
+            document.getElementById('formVenda').reset();
+            document.getElementById('precoUnitario').value = "";
+            carregarCarrinho();
         }
 
-        function exportarParaPDF() {
-            const agendamentos = obterAgendamentos();
-            if (agendamentos.length === 0) {
-                alert("Não há dados para exportar!");
+        function carregarCarrinho() {
+            const corpo = document.getElementById('corpoCaixa');
+            corpo.innerHTML = '';
+            const carrinho = obterCarrinho();
+            let totalGeral = 0;
+
+            carrinho.forEach((item, index) => {
+                totalGeral += item.subtotal;
+                corpo.innerHTML += `
+                    <tr>
+                        <td>${item.nome}</td>
+                        <td>${item.qtd}</td>
+                        <td>R$ ${item.preco.toFixed(2)}</td>
+                        <td>R$ ${item.subtotal.toFixed(2)}</td>
+                        <td><button class="btn-cancelar-item" onclick="cancelarItem(${index})">❌ Cancelar Item</button></td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('displayTotal').innerText = `TOTAL: R$ ${totalGeral.toFixed(2)}`;
+        }
+
+        // FUNÇÃO DE CANCELAMENTO DE UM PRODUTO REGISTRADO NA VENDA
+        function cancelarItem(index) {
+            if(confirm("Tem certeza que deseja cancelar e remover este produto da compra atual?")) {
+                let carrinho = obterCarrinho();
+                carrinho.splice(index, 1);
+                localStorage.setItem('carlamitertech_carrinho', JSON.stringify(carrinho));
+                carregarCarrinho();
+            }
+        }
+
+        // DIRECIOMANENTO PARA PAGAMENTO
+        function finalizarPagamento() {
+            const carrinho = obterCarrinho();
+            if(carrinho.length === 0) {
+                alert("Não há produtos lançados no caixa!");
                 return;
             }
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            let totalGeral = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
+            const forma = document.getElementById('formaPagamento').value;
+            const valorRecebido = parseFloat(document.getElementById('valorRecebido').value);
 
-            // Título do documento PDF
-            doc.setFontSize(18);
-            doc.setTextColor(0, 123, 255);
-            doc.text("Carlamitertech", 14, 20);
+            if(forma === 'Dinheiro') {
+                if(isNaN(valorRecebido) || valorRecebido < totalGeral) {
+                    alert("Valor recebido insuficiente para pagamento em dinheiro!");
+                    return;
+                }
+                const troco = valorRecebido - totalGeral;
+                alert(`Pagamento aprovado via Dinheiro!\nTotal: R$ ${totalGeral.toFixed(2)}\nTroco: R$ ${troco.toFixed(2)}`);
+            } else {
+                alert(`Pagamento aprovado via ${forma} no valor de R$ ${totalGeral.toFixed(2)}!`);
+            }
 
-            doc.setFontSize(12);
-            doc.setTextColor(100);
-            doc.text("Relatório de Agendamentos e Clientes", 14, 28);
-
-            // Montar dados para a tabela do PDF
-            const colunas = ["Nome", "Telefone", "CPF", "Data", "Horário", "Serviço"];
-            const linhas = agendamentos.map(item => [
-                item.nome,
-                item.telefone,
-                item.cpf,
-                item.data.split('-').reverse().join('/'),
-                item.horario,
-                item.servico
-            ]);
-
-            // Gerar tabela estilizada no PDF
-            doc.autoTable({
-                head: [colunas],
-                body: linhas,
-                startY: 35,
-                headStyles: { fillColor: [0, 123, 255] },
-                alternateRowStyles: { fillColor: [240, 240, 240] },
-                styles: { fontSize: 10, cellPadding: 3 }
-            });
-
-            // Baixar o arquivo PDF
-            doc.save("carlamitertech_clientes.pdf");
+            localStorage.removeItem('carlamitertech_carrinho');
+            document.getElementById('valorRecebido').value = '';
+            carregarCarrinho();
         }
     </script>
 </body>
