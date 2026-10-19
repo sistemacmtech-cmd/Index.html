@@ -15,12 +15,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .tab-btn.active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
-        #reader video, #reader-estoque video { object-fit: cover; border-radius: 0.5rem; width: 100% !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         
-        /* Estilos específicos para impressão do Cupom Térmico */
+        .tab-btn {
+            border-bottom: 3px solid transparent;
+            color: #94a3b8;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            border-bottom-color: #2563eb;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        
+        #reader video, #reader-estoque video { 
+            object-fit: cover; 
+            border-radius: 0.75rem; 
+            width: 100% !important; 
+        }
+
+        /* Estilos de Impressão Direta */
         @media print {
             body * { visibility: hidden; }
             #cupom-impressao, #cupom-impressao * { visibility: visible; }
@@ -29,7 +44,7 @@
                 left: 0;
                 top: 0;
                 width: 80mm;
-                padding: 5mm;
+                padding: 4mm;
                 margin: 0;
                 background: #fff;
                 color: #000;
@@ -44,22 +59,25 @@
 
     <!-- Cabeçalho Principal -->
     <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-blue-600 text-white p-2.5 rounded-xl font-black text-xl tracking-wider flex items-center gap-2">
-                    <i class="fa-solid font-bold fa-cash-register"></i> C
+                <div class="bg-blue-600 text-white w-12 h-12 rounded-xl font-black text-2xl tracking-wider flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-cash-register text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold leading-tight">Carlamitertech <span class="text-xs bg-blue-500/30 text-blue-300 font-semibold px-2 py-0.5 rounded-full border border-blue-400/30">PDV Pro v3.1</span></h1>
-                    <p class="text-xs text-slate-400">Sistema Avançado de Frente de Caixa e Gestão de Estoque</p>
+                    <h1 class="text-xl font-extrabold leading-tight tracking-tight flex items-center gap-2">
+                        Carlamitertech 
+                        <span class="text-xs bg-blue-500/20 text-blue-300 font-bold px-2.5 py-0.5 rounded-full border border-blue-400/30">PDV Pro v3.5</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Sistema Avançado de Frente de Caixa & Gestão de Estoque</p>
                 </div>
             </div>
 
-            <!-- Status do Operador & Conexão -->
+            <!-- Status do Terminal e Operador -->
             <div class="flex items-center gap-4 text-xs">
-                <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                <div class="bg-slate-800/90 border border-slate-700/80 px-3.5 py-2 rounded-xl flex items-center gap-2.5 shadow-inner">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Terminal #01 (Caixa Ativo)</span>
+                    <span class="font-medium text-slate-200">Terminal #01 (Caixa Ativo)</span>
                 </div>
                 <div class="hidden sm:flex items-center gap-2 text-slate-300">
                     <i class="fa-solid fa-user-shield text-blue-400"></i>
@@ -68,20 +86,20 @@
             </div>
         </div>
 
-        <!-- Abas de Navegação -->
-        <div class="bg-slate-800 border-t border-slate-700/60">
-            <div class="max-w-7xl mx-auto px-4 flex gap-2 overflow-x-auto text-sm font-medium text-slate-300">
-                <button onclick="mudarAba('caixa')" id="tab-caixa" class="tab-btn active px-4 py-3 flex items-center gap-2 hover:text-white transition">
-                    <i class="fa-solid fa-cart-shopping"></i> 1. Frente de Caixa (PDV)
+        <!-- Abas de Navegação Estilizadas -->
+        <div class="bg-slate-800/90 border-t border-slate-700/60">
+            <div class="max-w-7xl mx-auto px-4 flex gap-6 overflow-x-auto text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <button onclick="mudarAba('caixa')" id="tab-caixa" class="tab-btn active py-3.5 flex items-center gap-2.5 whitespace-nowrap">
+                    <i class="fa-solid fa-cart-shopping text-sm"></i> 1. Frente de Caixa (PDV)
                 </button>
-                <button onclick="mudarAba('produtos')" id="tab-produtos" class="tab-btn px-4 py-3 flex items-center gap-2 hover:text-white transition">
-                    <i class="fa-solid fa-boxes-stacked"></i> 2. Cadastros & Controle de Estoque
+                <button onclick="mudarAba('produtos')" id="tab-produtos" class="tab-btn py-3.5 flex items-center gap-2.5 whitespace-nowrap">
+                    <i class="fa-solid fa-boxes-stacked text-sm"></i> 2. Gestão de Produtos & Estoque
                 </button>
-                <button onclick="mudarAba('relatorios')" id="tab-relatorios" class="tab-btn px-4 py-3 flex items-center gap-2 hover:text-white transition">
-                    <i class="fa-solid fa-chart-line"></i> 3. Histórico e Relatórios
+                <button onclick="mudarAba('relatorios')" id="tab-relatorios" class="tab-btn py-3.5 flex items-center gap-2.5 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-line text-sm"></i> 3. Histórico e Relatórios
                 </button>
-                <button onclick="mudarAba('saas')" id="tab-saas" class="tab-btn px-4 py-3 flex items-center gap-2 hover:text-white transition">
-                    <i class="fa-solid fa-cloud"></i> 4. SaaS & Instalação
+                <button onclick="mudarAba('saas')" id="tab-saas" class="tab-btn py-3.5 flex items-center gap-2.5 whitespace-nowrap">
+                    <i class="fa-solid fa-cloud text-sm"></i> 4. SaaS & Instalação
                 </button>
             </div>
         </div>
@@ -93,79 +111,79 @@
         <!-- ABA 1: FRENTE DE CAIXA (PDV) -->
         <section id="aba-caixa" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <!-- Painel Esquerdo: Entrada de Produtos -->
-            <div class="lg:col-span-7 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
+            <!-- Entrada de Itens na Venda -->
+            <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col gap-4">
                 
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-barcode text-blue-600"></i> Entrada de Itens na Venda
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-barcode text-blue-600 text-lg"></i> Entrada de Itens na Venda
                     </h2>
-                    <button onclick="alternarLeitorCaixa()" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-2 transition border border-indigo-200">
+                    <button onclick="alternarLeitorCaixa()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3.5 py-1.5 rounded-xl font-semibold text-xs flex items-center gap-2 transition border border-indigo-200/80 shadow-sm">
                         <i class="fa-solid fa-camera"></i> <span id="btn-camera-caixa-txt">Ativar Câmera Scanner</span>
                     </button>
                 </div>
 
-                <!-- Container Câmera Scanner PDV -->
-                <div id="reader-caixa-wrapper" class="hidden bg-slate-900 p-3 rounded-xl border border-slate-700">
+                <!-- Câmera Scanner PDV -->
+                <div id="reader-caixa-wrapper" class="hidden bg-slate-900 p-3 rounded-2xl border border-slate-700">
                     <div id="reader" class="w-full"></div>
-                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Aproxime o código de barras da câmera para ler automaticamente</p>
+                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Aproxime o código de barras da câmera</p>
                 </div>
 
-                <!-- Formulário de Busca e Registro -->
+                <!-- Formulário Venda -->
                 <form id="formVenda" onsubmit="adicionarAoCaixa(event)" class="space-y-4">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Código de Barras ou QR Code</label>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Código de Barras ou QR Code</label>
                             <div class="relative">
                                 <input type="text" id="buscaCodigoBarras" placeholder="Escaneie ou digite o código..." oninput="buscarPorCodigo()" autocomplete="off"
-                                    class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
-                                <i class="fa-solid fa-barcode absolute left-3 top-3 text-slate-400"></i>
+                                    class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                                <i class="fa-solid fa-barcode absolute left-3 top-3.5 text-slate-400"></i>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Quantidade</label>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Quantidade</label>
                             <input type="number" id="quantidadeVenda" min="1" value="1" required
-                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-center focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-center focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Seleção Manual do Produto</label>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Seleção Manual do Produto</label>
                         <select id="produtoSelecionado" onchange="preencherPreco()"
-                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                             <option value="">Selecione um produto cadastrado...</option>
                         </select>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 items-center">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Preço Unitário</label>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Preço Unitário</label>
                             <div class="relative">
-                                <span class="absolute left-3 top-2.5 text-sm font-semibold text-slate-500">R$</span>
+                                <span class="absolute left-3 top-2.5 text-sm font-semibold text-slate-400">R$</span>
                                 <input type="text" id="precoUnitario" disabled readonly placeholder="0,00"
-                                    class="w-full pl-10 pr-3 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold text-slate-700">
+                                    class="w-full pl-10 pr-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700">
                             </div>
                         </div>
 
                         <div class="pt-5">
-                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm">
-                                <i class="fa-solid fa-plus-circle"></i> Adicionar Item
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-circle-plus"></i> Adicionar Item
                             </button>
                         </div>
                     </div>
                 </form>
 
-                <!-- Tabela de Itens da Compra Atual -->
+                <!-- Tabela de Itens -->
                 <div class="mt-2 flex-grow">
                     <div class="flex justify-between items-center mb-2">
                         <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Itens Registrados na Compra</h3>
-                        <span id="contador-itens" class="text-xs bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded">0 itens</span>
+                        <span id="contador-itens" class="text-xs bg-slate-100 text-slate-600 font-bold px-2.5 py-0.5 rounded-full border border-slate-200">0 itens</span>
                     </div>
 
-                    <div class="border border-slate-200 rounded-xl overflow-hidden max-h-[300px] overflow-y-auto">
+                    <div class="border border-slate-200 rounded-xl overflow-hidden max-h-[280px] overflow-y-auto">
                         <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 sticky top-0">
+                            <thead class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200 sticky top-0">
                                 <tr>
                                     <th class="py-2.5 px-3">Item</th>
                                     <th class="py-2.5 px-2 text-center">Qtd</th>
@@ -174,8 +192,8 @@
                                     <th class="py-2.5 px-2 text-center">Ação</th>
                                 </tr>
                             </thead>
-                            <tbody id="corpoCaixa" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- Preenchido dinamicamente via JS -->
+                            <tbody id="corpoCaixa" class="divide-y divide-slate-100 text-slate-700 text-xs">
+                                <!-- Preenchido via JS -->
                             </tbody>
                         </table>
                     </div>
@@ -183,35 +201,33 @@
 
             </div>
 
-            <!-- Painel Direito: Totais, Pagamento e Finalização -->
+            <!-- Painel Direito: Total & Pagamento -->
             <div class="lg:col-span-5 flex flex-col gap-4">
                 
-                <!-- Visor Digital de Total -->
-                <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-md border border-slate-800 flex flex-col justify-between">
-                    <div class="flex justify-between items-center text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 flex flex-col justify-between">
+                    <div class="flex justify-between items-center text-slate-400 text-xs uppercase tracking-wider font-bold">
                         <span>Total da Compra</span>
                         <i class="fa-solid fa-receipt text-slate-500 text-lg"></i>
                     </div>
-                    <div class="my-3 text-right">
-                        <span id="displayTotal" class="text-4xl font-extrabold text-emerald-400 tracking-tight">R$ 0,00</span>
+                    <div class="my-4 text-right">
+                        <span id="displayTotal" class="text-4xl font-black text-emerald-400 tracking-tight">R$ 0,00</span>
                     </div>
-                    <div class="text-xs text-slate-400 flex justify-between pt-2 border-t border-slate-800">
+                    <div class="text-[11px] text-slate-400 flex justify-between pt-2 border-t border-slate-800/80">
                         <span>Operação de Venda Direta</span>
-                        <span id="hora-atual">--:--:--</span>
+                        <span id="hora-atual" class="font-mono">--:--:--</span>
                     </div>
                 </div>
 
-                <!-- Quadrante de Pagamento -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex-grow flex flex-col justify-between gap-4">
-                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 flex items-center gap-2">
                         <i class="fa-solid fa-credit-card text-blue-600"></i> Fechamento de Pagamento
                     </h3>
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Forma de Pagamento</label>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Forma de Pagamento</label>
                             <select id="formaPagamento" onchange="verificarFormaPagamento()"
-                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                                 <option value="Dinheiro">💵 Dinheiro</option>
                                 <option value="Pix">⚡ Pix (QR Code Automático)</option>
                                 <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
@@ -219,25 +235,24 @@
                             </select>
                         </div>
 
-                        <!-- Campo para Troco (se Dinheiro) -->
                         <div id="box-dinheiro" class="space-y-2">
-                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Valor Recebido (R$)</label>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Valor Recebido (R$)</label>
                             <input type="number" step="0.01" id="valorRecebido" placeholder="Ex: 50.00" oninput="calcularTroco()"
-                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-lg font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-lg font-black text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                             
-                            <div class="flex justify-between items-center px-3 py-2 bg-slate-100 rounded-lg text-xs">
-                                <span class="font-medium text-slate-600">Troco a Devolver:</span>
+                            <div class="flex justify-between items-center px-3 py-2 bg-slate-100/80 rounded-xl text-xs">
+                                <span class="font-semibold text-slate-600">Troco a Devolver:</span>
                                 <span id="displayTroco" class="font-bold text-slate-900 text-sm">R$ 0,00</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="space-y-2 pt-2">
-                        <button onclick="finalizarPagamento()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base">
+                        <button onclick="finalizarPagamento()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 text-sm">
                             <i class="fa-solid fa-check-circle"></i> Finalizar Venda & Emitir Recibo
                         </button>
-                        <button onclick="cancelarVendaToda()" class="w-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-semibold py-2 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-trash-can"></i> Cancelar Toda a Compra
+                        <button onclick="cancelarVendaToda()" class="w-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-bold py-2 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Cancelar Compra
                         </button>
                     </div>
 
@@ -252,91 +267,90 @@
             
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center border-b border-slate-100 pb-3 mb-4 gap-2">
-                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-box-open text-blue-600"></i> Cadastrar / Atualizar Produto no Estoque
-                    </h2>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-box-open text-blue-600 text-lg"></i> Cadastrar / Atualizar Produto no Estoque
+                        </h2>
+                    </div>
 
-                    <!-- Botão de Escanear para Cadastrar/Atualizar Estoque -->
-                    <button type="button" onclick="alternarLeitorEstoque()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-2 transition shadow-sm">
-                        <i class="fa-solid fa-barcode"></i> <span id="btn-camera-estoque-txt">Escanear Código para Cadastrar / Repor</span>
+                    <button type="button" onclick="alternarLeitorEstoque()" class="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm">
+                        <i class="fa-solid fa-barcode"></i> <span id="btn-camera-estoque-txt">Escanear o Código para Cadastrar/Adicionar</span>
                     </button>
                 </div>
 
-                <!-- Leitor de Câmera da Aba Estoque -->
-                <div id="reader-estoque-wrapper" class="hidden bg-slate-900 p-3 rounded-xl border border-slate-700 mb-4">
+                <div id="reader-estoque-wrapper" class="hidden bg-slate-900 p-3 rounded-2xl border border-slate-700 mb-4">
                     <div id="reader-estoque" class="w-full"></div>
-                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Escaneie o código do produto. Se já existir, ele será selecionado para alteração. Se não existir, o código será preenchido para novo cadastro.</p>
+                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Aproxime o código de barras para carregar ou preencher automaticamente</p>
                 </div>
 
                 <form id="formProduto" onsubmit="salvarProduto(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Código / QR Code</label>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Código de Barras / QR</label>
                         <input type="text" id="codigoBarras" required placeholder="Ex: 789100123"
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono">
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome do Produto</label>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Produto</label>
                         <input type="text" id="nomeProduto" required placeholder="Ex: Arroz Tipo 1 5kg"
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Preço de Venda (R$)</label>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Preço de Venda (R$)</label>
                         <input type="number" step="0.01" id="precoProduto" required placeholder="Ex: 24.90"
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Quantidade em Estoque</label>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Qtd Inicial ou Ajuste</label>
                         <input type="number" id="estoqueProduto" required min="0" placeholder="Ex: 50"
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
 
                     <div class="md:col-span-3">
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Categoria</label>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Categoria</label>
                         <input type="text" id="categoriaProduto" required placeholder="Ex: Alimentos Básicos, Bebidas, Limpeza..."
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
 
                     <div class="md:col-span-1 flex items-end">
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm">
-                            <i class="fa-solid fa-save"></i> Salvar no Estoque
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-floppy-disk"></i> Salvar no Estoque
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Tabela de Produtos Cadastrados com Edição Rápida e Exclusão do Estoque -->
+            <!-- Tabela de Produtos com Ajuste de Quantidade -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                     <div>
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-slate-600"></i> Produtos Cadastrados & Gestão do Estoque
+                            <i class="fa-solid fa-boxes-stacked text-slate-600"></i> Produtos Cadastrados no Banco de Dados
                         </h3>
-                        <p class="text-xs text-slate-500">Você pode digitar a quantidade diretamente ou usar os botões + / - para dar entrada/baixa.</p>
                     </div>
                     
                     <div class="flex items-center gap-2">
-                        <input type="text" id="filtroEstoque" oninput="carregarProdutos()" placeholder="Pesquisar por nome ou código..."
-                            class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none w-64">
+                        <input type="text" id="filtroEstoque" oninput="carregarProdutos()" placeholder="Pesquisar estoque..."
+                            class="px-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none w-64">
                     </div>
                 </div>
 
                 <div class="border border-slate-200 rounded-xl overflow-hidden">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                        <thead class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200">
                             <tr>
                                 <th class="py-3 px-4">Código</th>
                                 <th class="py-3 px-4">Nome</th>
                                 <th class="py-3 px-4">Categoria</th>
-                                <th class="py-3 px-4 text-center">Quantidade Estoque</th>
+                                <th class="py-3 px-4 text-center">Estoque Atual</th>
                                 <th class="py-3 px-4 text-right">Preço Un.</th>
-                                <th class="py-3 px-4 text-center">Ações / Gestão</th>
+                                <th class="py-3 px-4 text-center">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="corpoProdutos" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Preenchido dinamicamente via JS -->
+                        <tbody id="corpoProdutos" class="divide-y divide-slate-100 text-slate-700 text-xs">
+                            <!-- Preenchido via JS -->
                         </tbody>
                     </table>
                 </div>
@@ -349,15 +363,15 @@
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <p class="text-xs font-semibold text-slate-500 uppercase">Total de Vendas Acumuladas</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total de Vendas Acumuladas</p>
                     <h3 id="metric-total-vendas" class="text-2xl font-black text-slate-900 mt-1">R$ 0,00</h3>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <p class="text-xs font-semibold text-slate-500 uppercase">Qtd de Cupons Emitidos</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Qtd de Cupons Emitidos</p>
                     <h3 id="metric-qtd-vendas" class="text-2xl font-black text-blue-600 mt-1">0</h3>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <p class="text-xs font-semibold text-slate-500 uppercase">Ticket Médio por Venda</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ticket Médio por Venda</p>
                     <h3 id="metric-ticket-medio" class="text-2xl font-black text-emerald-600 mt-1">R$ 0,00</h3>
                 </div>
             </div>
@@ -369,16 +383,16 @@
 
                 <div class="border border-slate-200 rounded-xl overflow-hidden">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                        <thead class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200">
                             <tr>
                                 <th class="py-3 px-4">Data/Hora</th>
                                 <th class="py-3 px-4">Forma Pagto</th>
                                 <th class="py-3 px-4 text-center">Itens</th>
                                 <th class="py-3 px-4 text-right">Valor Total</th>
-                                <th class="py-3 px-4 text-center">Ações / Comprovante</th>
+                                <th class="py-3 px-4 text-center">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="corpoHistorico" class="divide-y divide-slate-100 text-slate-700">
+                        <tbody id="corpoHistorico" class="divide-y divide-slate-100 text-slate-700 text-xs">
                             <!-- Preenchido via JS -->
                         </tbody>
                     </table>
@@ -387,7 +401,7 @@
 
         </section>
 
-        <!-- ABA 4: MODELO SAAS & SISTEMA DESKTOP -->
+        <!-- ABA 4: SAAS & INSTALAÇÃO (CONFORME FOTO) -->
         <section id="aba-saas" class="hidden space-y-6">
             
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -400,30 +414,30 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
-                    <!-- Opção 1: SaaS Web -->
-                    <div class="border border-blue-200 bg-blue-50/50 p-5 rounded-xl space-y-3">
+                    <!-- Bloco SaaS Web -->
+                    <div class="border border-blue-200 bg-blue-50/40 p-5 rounded-2xl space-y-3">
                         <div class="flex items-center gap-2 text-blue-700 font-bold text-lg">
                             <i class="fa-solid fa-globe"></i> Modelo SaaS Web (Online)
                         </div>
                         <p class="text-xs text-slate-600 leading-relaxed">
                             O cliente acessa diretamente via navegador de qualquer computador ou tablet na loja.
                         </p>
-                        <ul class="text-xs text-slate-700 space-y-1.5 list-disc pl-4">
+                        <ul class="text-xs text-slate-700 space-y-2 list-disc pl-4">
                             <li><strong>Link de Acesso:</strong> <code class="bg-white px-2 py-0.5 rounded border border-blue-200 text-blue-600 font-mono">https://pdv.carlamitertech.com.br</code></li>
-                            <li><strong>Credenciais Padrão:</strong> Usuário: <code class="bg-white px-1 rounded">caixa01</code> | Senha: <code class="bg-white px-1 rounded">123456</code></li>
+                            <li><strong>Credenciais Padrão:</strong> Usuário: <code class="bg-white px-1.5 py-0.5 rounded border">caixa01</code> | Senha: <code class="bg-white px-1.5 py-0.5 rounded border">123456</code></li>
                             <li>Sincronização em nuvem e suporte a múltiplos caixas em tempo real.</li>
                         </ul>
                     </div>
 
-                    <!-- Opção 2: Desktop Instalado -->
-                    <div class="border border-slate-200 bg-slate-50 p-5 rounded-xl space-y-3">
+                    <!-- Bloco Desktop -->
+                    <div class="border border-slate-200 bg-slate-50 p-5 rounded-2xl space-y-3">
                         <div class="flex items-center gap-2 text-slate-800 font-bold text-lg">
                             <i class="fa-solid fa-desktop"></i> Modelo Desktop (Instalado no Caixa)
                         </div>
                         <p class="text-xs text-slate-600 leading-relaxed">
                             O sistema roda como aplicativo isolado no computador do supermercado (.EXE/.MSI via Electron ou NW.js).
                         </p>
-                        <ul class="text-xs text-slate-700 space-y-1.5 list-disc pl-4">
+                        <ul class="text-xs text-slate-700 space-y-2 list-disc pl-4">
                             <li><strong>Instalação Remota:</strong> Realizada via AnyDesk ou TeamViewer.</li>
                             <li><strong>Instalador Offline:</strong> Pacote <code class="bg-white px-2 py-0.5 rounded border text-slate-600 font-mono">Carlamitertech-PDV-Setup.exe</code></li>
                             <li>Funciona mesmo sem internet com armazenamento em banco de dados local.</li>
@@ -437,36 +451,33 @@
 
     </main>
 
-    <!-- MODAL DE VISUALIZAÇÃO E IMPRESSÃO DE COMPROVANTE (TÉRMICO) -->
+    <!-- Modal de Comprovante e Impressão -->
     <div id="modal-comprovante" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 m-4 relative border border-slate-200">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-print text-blue-600"></i> Comprovante de Venda
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-print text-blue-600"></i> Recibo de Compra Emitido
                 </h3>
                 <button onclick="fecharModalComprovante()" class="text-slate-400 hover:text-slate-600 text-lg">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Preview do Cupom Impresso -->
             <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs font-mono max-h-80 overflow-y-auto leading-tight text-slate-900" id="preview-cupom-modal">
-                <!-- Conteúdo preenchido dinamicamente via JS -->
             </div>
 
-            <!-- Ações -->
             <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="imprimirCupomAtual()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-solid fa-print"></i> Imprimir Comprovante
+                <button onclick="imprimirCupomAtual()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs">
+                    <i class="fa-solid fa-print"></i> Imprimir Recibo
                 </button>
-                <button onclick="baixarPDFModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                <button onclick="baixarPDFModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs">
                     <i class="fa-solid fa-file-pdf"></i> Baixar PDF
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ÁREA OCULTA DE IMPRESSÃO (Formatada para impressoras térmicas de 80mm) -->
+    <!-- Área Oculta para Impressora Térmica -->
     <div id="cupom-impressao" class="hidden"></div>
 
     <!-- Rodapé -->
@@ -477,13 +488,12 @@
         </div>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- LóGICA JAVASCRIPT COMPLETA -->
     <script>
         let html5QrcodeCaixa = null;
         let html5QrcodeEstoque = null;
         let vendaAtualModal = null;
 
-        // Produtos Iniciais Padrão para Demonstração
         const produtosIniciais = [
             { codigo: "78910001", nome: "Arroz Tipo 1 5kg", preco: 26.90, categoria: "Alimentos", estoque: 40 },
             { codigo: "78910002", nome: "Feijão Carioca 1kg", preco: 7.50, categoria: "Alimentos", estoque: 85 },
@@ -508,7 +518,6 @@
             if(el) el.innerText = now.toLocaleTimeString('pt-BR');
         }
 
-        // --- SISTEMA DE NAVEGAÇÃO ENTRE ABAS ---
         function mudarAba(aba) {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -520,7 +529,6 @@
             document.getElementById(`tab-${aba}`).classList.add('active');
         }
 
-        // --- BANCO DE DADOS LOCALSTORAGE ---
         function inicializarBanco() {
             if (!localStorage.getItem('carlamitertech_produtos')) {
                 localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtosIniciais));
@@ -536,9 +544,7 @@
             localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
         }
 
-        // --- LEITORES DE CÓDIGO DE BARRAS / QR CODE ---
-
-        // 1. Leitor da Aba Frente de Caixa (PDV)
+        /* --- LEITORES DA CÂMERA --- */
         function alternarLeitorCaixa() {
             const wrapper = document.getElementById('reader-caixa-wrapper');
             if (wrapper.classList.contains('hidden')) {
@@ -558,17 +564,15 @@
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
 
             html5QrcodeCaixa.start(
-                { facingMode: "environment" }, 
-                config, 
+                { facingMode: "environment" }, config,
                 (decodedText) => {
                     document.getElementById('buscaCodigoBarras').value = decodedText;
                     buscarPorCodigo();
                     tocarBeep();
                     pararLeitorCaixa();
-                }, 
-                () => {}
-            ).catch(err => {
-                alert("Não foi possível iniciar a câmera. Verifique as permissões.");
+                }, () => {}
+            ).catch(() => {
+                alert("Erro ao iniciar a câmera do caixa.");
                 pararLeitorCaixa();
             });
         }
@@ -586,7 +590,6 @@
             if(txt) txt.innerText = "Ativar Câmera Scanner";
         }
 
-        // 2. Leitor da Aba Controle de Estoque
         function alternarLeitorEstoque() {
             const wrapper = document.getElementById('reader-estoque-wrapper');
             if (wrapper.classList.contains('hidden')) {
@@ -606,16 +609,14 @@
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
 
             html5QrcodeEstoque.start(
-                { facingMode: "environment" }, 
-                config, 
+                { facingMode: "environment" }, config,
                 (decodedText) => {
                     tocarBeep();
                     processarLeituraEstoque(decodedText);
                     pararLeitorEstoque();
-                }, 
-                () => {}
-            ).catch(err => {
-                alert("Erro ao acessar a câmera para o estoque.");
+                }, () => {}
+            ).catch(() => {
+                alert("Erro ao acessar a câmera do estoque.");
                 pararLeitorEstoque();
             });
         }
@@ -630,36 +631,30 @@
             const wrapper = document.getElementById('reader-estoque-wrapper');
             if(wrapper) wrapper.classList.add('hidden');
             const txt = document.getElementById('btn-camera-estoque-txt');
-            if(txt) txt.innerText = "Escanear Código para Cadastrar / Repor";
+            if(txt) txt.innerText = "Escanear o Código para Cadastrar/Adicionar";
         }
 
         function processarLeituraEstoque(codigo) {
-            const produtos = obtainingDB = obterProdutosDB();
+            const produtos = obterProdutosDB();
             const prodExistente = produtos.find(p => p.codigo.toLowerCase() === codigo.toLowerCase());
 
             if (prodExistente) {
-                // Preenche os campos para permitir edição rápida
                 document.getElementById('codigoBarras').value = prodExistente.codigo;
                 document.getElementById('nomeProduto').value = prodExistente.nome;
                 document.getElementById('precoProduto').value = prodExistente.preco;
                 document.getElementById('estoqueProduto').value = prodExistente.estoque;
                 document.getElementById('categoriaProduto').value = prodExistente.categoria;
-
-                // Destaca na tabela
                 document.getElementById('filtroEstoque').value = codigo;
                 carregarProdutos();
-
-                alert(`Produto Encontrado no Banco:\n\nNome: ${prodExistente.nome}\nEstoque Atual: ${prodExistente.estoque} un\n\nVocê pode alterar a quantidade ou preço no formulário acima.`);
+                alert(`Produto Encontrado: ${prodExistente.nome} (${prodExistente.estoque} un em estoque).`);
             } else {
-                // Produto novo: preenche o código para facilitar cadastro
                 document.getElementById('codigoBarras').value = codigo;
                 document.getElementById('nomeProduto').value = '';
                 document.getElementById('precoProduto').value = '';
                 document.getElementById('estoqueProduto').value = '';
                 document.getElementById('categoriaProduto').value = '';
                 document.getElementById('nomeProduto').focus();
-
-                alert(`Novo Código Escaneado: ${codigo}\n\nPreencha o nome, preço e quantidade para salvar no estoque.`);
+                alert(`Código Novo Registrado: ${codigo}. Preencha os dados do produto para cadastrar.`);
             }
         }
 
@@ -679,7 +674,6 @@
             const codigoBuscado = document.getElementById('buscaCodigoBarras').value.trim();
             const produtos = obterProdutosDB();
             const select = document.getElementById('produtoSelecionado');
-
             const idx = produtos.findIndex(p => p.codigo.toLowerCase() === codigoBuscado.toLowerCase());
 
             if (idx !== -1) {
@@ -691,7 +685,7 @@
             }
         }
 
-        // --- GESTÃO E CONTROLE DE ESTOQUE DE PRODUTOS ---
+        /* --- GESTÃO DE ESTOQUE --- */
         function salvarProduto(e) {
             e.preventDefault();
             const codigo = document.getElementById('codigoBarras').value.trim();
@@ -713,7 +707,7 @@
             document.getElementById('formProduto').reset();
             carregarProdutos();
             atualizarSelectProdutos();
-            alert("Produto salvo com sucesso no banco de dados do estoque!");
+            alert("Produto cadastrado/atualizado no estoque com sucesso!");
         }
 
         function carregarProdutos() {
@@ -729,7 +723,7 @@
             );
 
             if (produtos.length === 0) {
-                corpo.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">Nenhum produto encontrado.</td></tr>`;
+                corpo.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">Nenhum produto cadastrado no estoque.</td></tr>`;
                 return;
             }
 
@@ -737,30 +731,25 @@
                 const estoqueClasse = p.estoque <= 5 ? 'text-rose-600 font-bold bg-rose-50' : 'text-slate-700';
                 corpo.innerHTML += `
                     <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="py-2.5 px-4 font-mono text-xs font-semibold text-slate-800">${p.codigo}</td>
+                        <td class="py-2.5 px-4 font-mono font-semibold text-slate-800">${p.codigo}</td>
                         <td class="py-2.5 px-4 font-medium text-slate-900">${p.nome}</td>
-                        <td class="py-2.5 px-4"><span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded border border-slate-200">${p.categoria}</span></td>
-                        
-                        <!-- Ajuste Digitável e Direto do Estoque -->
+                        <td class="py-2.5 px-4"><span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${p.categoria}</span></td>
                         <td class="py-2.5 px-4 text-center">
                             <div class="inline-flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200">
-                                <button onclick="alterarEstoqueRapido('${p.codigo}', -1)" class="w-6 h-6 rounded bg-slate-200 hover:bg-rose-500 hover:text-white font-bold text-xs flex items-center justify-center transition" title="Diminuir 1 un">-</button>
+                                <button onclick="alterarEstoqueRapido('${p.codigo}', -1)" class="w-5 h-5 rounded bg-slate-200 hover:bg-rose-500 hover:text-white font-bold text-xs flex items-center justify-center transition">-</button>
                                 <input type="number" value="${p.estoque}" min="0" onchange="atualizarEstoqueDireto('${p.codigo}', this.value)" 
-                                    class="w-14 text-center text-xs font-bold bg-white border border-slate-300 rounded py-0.5 focus:ring-1 focus:ring-blue-500 ${estoqueClasse}">
-                                <button onclick="alterarEstoqueRapido('${p.codigo}', 1)" class="w-6 h-6 rounded bg-slate-200 hover:bg-emerald-500 hover:text-white font-bold text-xs flex items-center justify-center transition" title="Aumentar 1 un">+</button>
+                                    class="w-12 text-center text-xs font-bold bg-white border border-slate-300 rounded py-0.5 focus:ring-1 focus:ring-blue-500 ${estoqueClasse}">
+                                <button onclick="alterarEstoqueRapido('${p.codigo}', 1)" class="w-5 h-5 rounded bg-slate-200 hover:bg-emerald-500 hover:text-white font-bold text-xs flex items-center justify-center transition">+</button>
                             </div>
                         </td>
-
                         <td class="py-2.5 px-4 text-right font-bold text-slate-900">R$ ${p.preco.toFixed(2)}</td>
-                        
-                        <!-- Botões de Ação no Estoque -->
                         <td class="py-2.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <button onclick="preencherFormEdicao('${p.codigo}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition flex items-center gap-1" title="Editar informações completos">
-                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                <button onclick="preencherFormEdicao('${p.codigo}')" class="text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 transition" title="Editar">
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                                <button onclick="excluirProdutoDoEstoque('${p.codigo}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition flex items-center gap-1" title="Excluir este produto do banco">
-                                    <i class="fa-solid fa-trash-can"></i> Excluir
+                                <button onclick="excluirProdutoDoEstoque('${p.codigo}')" class="text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 rounded hover:bg-rose-50 transition" title="Excluir do Estoque">
+                                    <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
                         </td>
@@ -769,7 +758,6 @@
             });
         }
 
-        // Alteração Rápida via Botoes (+ / -)
         function alterarEstoqueRapido(codigo, delta) {
             let produtos = obterProdutosDB();
             const idx = produtos.findIndex(p => p.codigo === codigo);
@@ -781,14 +769,9 @@
             }
         }
 
-        // Alteração Digitável Direta na Tabela
         function atualizarEstoqueDireto(codigo, valor) {
             const novaQtd = parseInt(valor);
-            if (isNaN(novaQtd) || novaQtd < 0) {
-                alert("Insira uma quantidade válida!");
-                carregarProdutos();
-                return;
-            }
+            if (isNaN(novaQtd) || novaQtd < 0) return;
             let produtos = obterProdutosDB();
             const idx = produtos.findIndex(p => p.codigo === codigo);
             if (idx !== -1) {
@@ -812,15 +795,10 @@
             }
         }
 
-        // Excluir Produto Definitivamente do Estoque
         function excluirProdutoDoEstoque(codigo) {
-            const produtos = obterProdutosDB();
-            const p = produtos.find(item => item.codigo === codigo);
-            const nomeProd = p ? p.nome : codigo;
-
-            if(confirm(`Tem certeza que deseja excluir o produto "${nomeProd}" (Código: ${codigo}) do seu estoque?`)) {
-                let produtosAtualizados = produtos.filter(p => p.codigo !== codigo);
-                salvarProdutosDB(produtosAtualizados);
+            if(confirm(`Remover produto ${codigo} do estoque?`)) {
+                let produtos = obterProdutosDB().filter(p => p.codigo !== codigo);
+                salvarProdutosDB(produtos);
                 carregarProdutos();
                 atualizarSelectProdutos();
             }
@@ -846,7 +824,7 @@
             }
         }
 
-        // --- CARRINHO & OPERAÇÃO DE CAIXA ---
+        /* --- OPERAÇÃO DO PDV --- */
         function obterCarrinho() {
             const carr = localStorage.getItem('carlamitertech_carrinho');
             return carr ? JSON.parse(carr) : [];
@@ -862,7 +840,7 @@
             const qtd = parseInt(document.getElementById('quantidadeVenda').value);
             
             if(idx === "") {
-                alert("Por favor, selecione ou escaneie um produto válido!");
+                alert("Selecione um produto válido!");
                 return;
             }
 
@@ -870,7 +848,7 @@
             const produtoEscolhido = produtos[idx];
 
             if (produtoEscolhido.estoque < qtd) {
-                alert(`Atenção: Estoque insuficiente! Disponível: ${produtoEscolhido.estoque} un`);
+                alert(`Estoque insuficiente! Disponível: ${produtoEscolhido.estoque} un`);
                 return;
             }
 
@@ -901,12 +879,12 @@
                 totalGeral += item.subtotal;
                 corpo.innerHTML += `
                     <tr class="hover:bg-slate-50">
-                        <td class="py-2 px-3 font-medium">${item.nome}</td>
-                        <td class="py-2 px-2 text-center font-bold">${item.qtd}</td>
+                        <td class="py-2 px-3 font-medium text-slate-800">${item.nome}</td>
+                        <td class="py-2 px-2 text-center font-bold text-slate-700">${item.qtd}</td>
                         <td class="py-2 px-3 text-right">R$ ${item.preco.toFixed(2)}</td>
                         <td class="py-2 px-3 text-right font-bold text-slate-900">R$ ${item.subtotal.toFixed(2)}</td>
                         <td class="py-2 px-2 text-center">
-                            <button onclick="cancelarItem(${index})" class="text-rose-500 hover:text-rose-700 text-xs p-1">
+                            <button onclick="cancelarItem(${index})" class="text-rose-500 hover:text-rose-700 p-1">
                                 <i class="fa-solid fa-circle-xmark"></i>
                             </button>
                         </td>
@@ -927,7 +905,7 @@
         }
 
         function cancelarVendaToda() {
-            if(confirm("Deseja realmente cancelar todos os itens da compra atual?")) {
+            if(confirm("Cancelar toda a compra atual?")) {
                 localStorage.removeItem('carlamitertech_carrinho');
                 carregarCarrinho();
             }
@@ -959,11 +937,11 @@
             }
         }
 
-        // --- FINALIZAÇÃO E EMISSÃO DE RECIBOS/COMPROVANTES ---
+        /* --- FINALIZAÇÃO E IMPRESSÃO DE COMPROVANTES --- */
         function finalizarPagamento() {
             const carrinho = obterCarrinho();
             if (carrinho.length === 0) {
-                alert("O carrinho está vazio! Adicione produtos antes de finalizar.");
+                alert("O carrinho está vazio!");
                 return;
             }
 
@@ -972,7 +950,7 @@
             const recebido = parseFloat(document.getElementById('valorRecebido').value) || 0;
 
             if (forma === 'Dinheiro' && recebido < total) {
-                alert("O valor recebido em dinheiro é menor que o total da compra!");
+                alert("O valor recebido em dinheiro é menor que o total!");
                 return;
             }
 
@@ -986,7 +964,6 @@
             });
             salvarProdutosDB(produtos);
 
-            // Salvar no Histórico de Vendas
             const venda = {
                 id: Date.now(),
                 data: new Date().toLocaleString('pt-BR'),
@@ -1001,18 +978,15 @@
             historico.unshift(venda);
             localStorage.setItem('carlamitertech_historico', JSON.stringify(historico));
 
-            // Limpar Carrinho do PDV
             localStorage.removeItem('carlamitertech_carrinho');
             document.getElementById('valorRecebido').value = '';
             carregarCarrinho();
             carregarProdutos();
             carregarHistorico();
 
-            // Abrir Modal do Comprovante para Impressão
             abrirModalComprovante(venda);
         }
 
-        // --- SISTEMA DE IMPRESSÃO DE COMPROVANTE ---
         function abrirModalComprovante(venda) {
             vendaAtualModal = venda;
             const containerPreview = document.getElementById('preview-cupom-modal');
@@ -1036,15 +1010,13 @@
                 `;
             });
 
-            const cupomTextoModal = `
+            containerPreview.innerHTML = `
                 <div class="text-center font-bold text-sm mb-1">CARLAMITERTECH SUPERMERCADO</div>
                 <div class="text-center text-[10px] text-slate-500 mb-2">Poços de Caldas - MG | CNPJ: 00.000.000/0001-00</div>
                 <div class="text-center font-bold border-y border-dashed border-slate-300 py-1 mb-2">COMPROVANTE NÃO FISCAL</div>
                 <div class="text-[11px] mb-1">Data: ${venda.data}</div>
                 <div class="text-[11px] mb-2">Cupom Nº: #${venda.id}</div>
-                <div class="border-t border-dashed border-slate-300 pt-2">
-                    ${itensHTML}
-                </div>
+                <div class="border-t border-dashed border-slate-300 pt-2">${itensHTML}</div>
                 <div class="border-t border-dashed border-slate-300 mt-2 pt-2 flex justify-between font-bold text-sm">
                     <span>TOTAL:</span>
                     <span>R$ ${venda.total.toFixed(2)}</span>
@@ -1054,43 +1026,23 @@
                     <span>${venda.formaPagamento}</span>
                 </div>
                 ${venda.formaPagamento === 'Dinheiro' ? `
-                    <div class="flex justify-between text-[11px]">
-                        <span>Recebido:</span>
-                        <span>R$ ${venda.valorRecebido.toFixed(2)}</span>
-                    </div>
-                    <div class="flex justify-between text-[11px]">
-                        <span>Troco:</span>
-                        <span>R$ ${venda.troco.toFixed(2)}</span>
-                    </div>
+                    <div class="flex justify-between text-[11px]"><span>Recebido:</span><span>R$ ${venda.valorRecebido.toFixed(2)}</span></div>
+                    <div class="flex justify-between text-[11px]"><span>Troco:</span><span>R$ ${venda.troco.toFixed(2)}</span></div>
                 ` : ''}
-                <div class="text-center text-[10px] text-slate-500 mt-4 border-t border-dashed border-slate-300 pt-2">
-                    Obrigado pela preferência! Volte sempre.
-                </div>
+                <div class="text-center text-[10px] text-slate-500 mt-4 border-t border-dashed border-slate-300 pt-2">Obrigado pela preferência! Volte sempre.</div>
             `;
 
-            containerPreview.innerHTML = cupomTextoModal;
-
-            // Formatação Exclusiva para a Impressora Térmica
             containerImpressao.innerHTML = `
                 <div style="text-align: center; font-weight: bold; font-size: 13px;">CARLAMITERTECH SUPERMERCADO</div>
-                <div style="text-align: center; font-size: 9px; margin-bottom: 5px;">Poços de Caldas - MG | CNPJ: 00.000.000/0001-00</div>
+                <div style="text-align: center; font-size: 9px; margin-bottom: 5px;">Poços de Caldas - MG</div>
                 <div style="text-align: center; font-weight: bold; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 3px 0; margin-bottom: 5px;">COMPROVANTE DE COMPRA</div>
                 <div>Data/Hora: ${venda.data}</div>
                 <div>Cupom Nº: #${venda.id}</div>
                 <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
-                <table style="width: 100%; font-size: 10px; border-collapse: collapse;">
-                    ${itensPrint}
-                </table>
+                <table style="width: 100%; font-size: 10px; border-collapse: collapse;">${itensPrint}</table>
                 <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
-                <div style="font-weight: bold; font-size: 12px; display: flex; justify-content: space-between;">
-                    <span>TOTAL:</span>
-                    <span>R$ ${venda.total.toFixed(2)}</span>
-                </div>
+                <div style="font-weight: bold; font-size: 12px; display: flex; justify-between;"><span>TOTAL:</span><span>R$ ${venda.total.toFixed(2)}</span></div>
                 <div>Forma Pagto: ${venda.formaPagamento}</div>
-                ${venda.formaPagamento === 'Dinheiro' ? `
-                    <div>Valor Recebido: R$ ${venda.valorRecebido.toFixed(2)}</div>
-                    <div>Troco: R$ ${venda.troco.toFixed(2)}</div>
-                ` : ''}
                 <div style="text-align: center; font-size: 9px; margin-top: 15px;">Obrigado pela preferência e volte sempre!</div>
             `;
 
@@ -1107,9 +1059,7 @@
         }
 
         function baixarPDFModal() {
-            if(vendaAtualModal) {
-                gerarReciboPDF(vendaAtualModal);
-            }
+            if(vendaAtualModal) gerarReciboPDF(vendaAtualModal);
         }
 
         function gerarReciboPDF(venda) {
@@ -1160,33 +1110,32 @@
             y += 8;
             doc.text('Obrigado pela preferência e volte sempre!', 40, y, { align: 'center' });
 
-            doc.save(`Comprovante_Carlamitertech_${venda.id}.pdf`);
+            doc.save(`Recibo_Carlamitertech_${venda.id}.pdf`);
         }
 
-        // --- RELATÓRIOS & HISTÓRICO ---
+        /* --- RELATÓRIOS --- */
         function carregarHistorico() {
             const corpo = document.getElementById('corpoHistorico');
             if(!corpo) return;
             corpo.innerHTML = '';
 
             const historico = JSON.parse(localStorage.getItem('carlamitertech_historico') || '[]');
-            
             let totalGeralVendas = 0;
             
             historico.forEach(venda => {
                 totalGeralVendas += venda.total;
                 corpo.innerHTML += `
                     <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="py-2.5 px-4 font-medium text-xs">${venda.data}</td>
-                        <td class="py-2.5 px-4"><span class="bg-blue-50 text-blue-700 font-semibold text-xs px-2 py-0.5 rounded border border-blue-100">${venda.formaPagamento}</span></td>
-                        <td class="py-2.5 px-4 text-center font-bold text-xs">${venda.itens.length}</td>
+                        <td class="py-2.5 px-4 font-medium">${venda.data}</td>
+                        <td class="py-2.5 px-4"><span class="bg-blue-50 text-blue-700 font-bold text-[10px] px-2 py-0.5 rounded border border-blue-100">${venda.formaPagamento}</span></td>
+                        <td class="py-2.5 px-4 text-center font-bold">${venda.itens.length}</td>
                         <td class="py-2.5 px-4 text-right font-black text-slate-900">R$ ${venda.total.toFixed(2)}</td>
                         <td class="py-2.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <button onclick='abrirModalComprovante(${JSON.stringify(venda)})' class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition flex items-center gap-1">
-                                    <i class="fa-solid fa-print"></i> Imprimir Comprovante
+                                <button onclick='abrirModalComprovante(${JSON.stringify(venda)})' class="text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 transition">
+                                    <i class="fa-solid fa-print"></i> Reemitir
                                 </button>
-                                <button onclick='gerarReciboPDF(${JSON.stringify(venda)})' class="text-slate-600 hover:text-slate-800 text-xs font-semibold px-2 py-1 rounded hover:bg-slate-100 transition flex items-center gap-1">
+                                <button onclick='gerarReciboPDF(${JSON.stringify(venda)})' class="text-slate-600 hover:text-slate-800 font-semibold px-2 py-1 rounded hover:bg-slate-100 transition">
                                     <i class="fa-solid fa-file-pdf"></i> PDF
                                 </button>
                             </div>
@@ -1195,7 +1144,6 @@
                 `;
             });
 
-            // Atualizar Métricas na Tela
             const qtdVendas = historico.length;
             const ticketMedio = qtdVendas > 0 ? (totalGeralVendas / qtdVendas) : 0;
 
