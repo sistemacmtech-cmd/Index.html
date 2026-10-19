@@ -3,48 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Completo de Clientes</title>
+    <title>Carlamitertech - Sistema de Agendamento</title>
+    
+    <!-- Bibliotecas externas para geração de PDF (jsPDF + AutoTable) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         body { 
             font-family: Arial, sans-serif; 
-            margin: 20px; 
-            background-color: #f4f4f9; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f4f4f9;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
+
+        .cabecalho-principal {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .cabecalho-principal h1 {
+            color: #007bff;
+            font-size: 32px;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cabecalho-principal p {
+            color: #555;
+            margin: 0;
+            font-size: 16px;
+        }
+
         h2 { 
             color: #333; 
-            margin-top: 30px; 
+            margin-top: 20px; 
         }
+
         form { 
-            background: white; 
+            background: #ffffff; 
             padding: 20px; 
             border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
             max-width: 500px; 
             margin-bottom: 30px; 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             gap: 15px; 
+            color: #333;
         }
+
         .campo { 
             display: flex; 
             flex-direction: column; 
         }
+
         .campo.cheio { 
             grid-column: span 2; 
         }
+
         label { 
             margin-bottom: 5px; 
             font-weight: bold; 
         }
-        input { 
+
+        input, select { 
             padding: 8px; 
             border: 1px solid #ccc; 
             border-radius: 4px; 
             box-sizing: border-box; 
+            font-size: 14px;
         }
+
         .btn-container { 
             grid-column: span 2; 
         }
+
         button.btn-salvar { 
             background-color: #28a745; 
             color: white; 
@@ -54,26 +91,38 @@
             cursor: pointer; 
             font-size: 16px; 
             width: 100%; 
+            font-weight: bold;
         }
+
         button.btn-salvar:hover { 
             background-color: #218838; 
         }
-        /* Controles da Tabela (Pesquisa e Excel) */
+
+        /* Controles da Tabela (Pesquisa e Exportações) */
         .controles-tabela { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
+            flex-wrap: wrap;
             max-width: 100%; 
             margin-bottom: 15px; 
-            gap: 15px; 
+            gap: 10px; 
         }
+
         .busca-input { 
             padding: 10px; 
-            width: 300px; 
+            width: 280px; 
             border: 1px solid #ccc; 
             border-radius: 4px; 
             font-size: 14px; 
+            background: #ffffff;
         }
+
+        .botoes-exportacao {
+            display: flex;
+            gap: 10px;
+        }
+
         button.btn-excel { 
             background-color: #1f7246; 
             color: white; 
@@ -84,32 +133,55 @@
             font-size: 14px; 
             font-weight: bold; 
         }
+
         button.btn-excel:hover { 
             background-color: #154c2e; 
         }
+
+        button.btn-pdf { 
+            background-color: #dc3545; 
+            color: white; 
+            padding: 10px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
+
+        button.btn-pdf:hover { 
+            background-color: #bd2130; 
+        }
+
         .tabela-container { 
             overflow-x: auto; 
-            background: white; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            background: #ffffff; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
             border-radius: 8px; 
+            color: #333;
         }
+
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            min-width: 600px; 
+            min-width: 700px; 
         }
+
         th, td { 
             padding: 12px; 
             text-align: left; 
             border-bottom: 1px solid #ddd; 
         }
+
         th { 
             background-color: #007bff; 
             color: white; 
         }
+
         tr:hover { 
             background-color: #f1f1f1; 
         }
+
         .btn-excluir { 
             background-color: #dc3545; 
             color: white; 
@@ -118,6 +190,7 @@
             border-radius: 4px; 
             cursor: pointer; 
         }
+
         .btn-excluir:hover { 
             background-color: #c82333; 
         }
@@ -125,8 +198,13 @@
 </head>
 <body>
 
-    <h2>Cadastrar Novo Cliente</h2>
-    <form id="formCliente">
+    <div class="cabecalho-principal">
+        <h1>Carlamitertech</h1>
+        <p>Sistema de Agendamento e Gestão de Clientes</p>
+    </div>
+
+    <h2>Agendar Novo Cliente</h2>
+    <form id="formAgendamento">
         <div class="campo cheio">
             <label for="nome">Nome Completo:</label>
             <input type="text" id="nome" required placeholder="Ex: João Silva">
@@ -139,36 +217,44 @@
             <label for="cpf">CPF:</label>
             <input type="text" id="cpf" required placeholder="Ex: 000.000.000-00">
         </div>
-        <div class="campo cheio">
-            <label for="email">E-mail:</label>
-            <input type="email" id="email" required placeholder="Ex: joao@email.com">
+        <div class="campo">
+            <label for="data">Data do Agendamento:</label>
+            <input type="date" id="data" required>
+        </div>
+        <div class="campo">
+            <label for="horario">Horário Marcado:</label>
+            <input type="time" id="horario" required>
         </div>
         <div class="campo cheio">
-            <label for="endereco">Endereço:</label>
-            <input type="text" id="endereco" required placeholder="Ex: Rua Flores, 123 - Centro">
+            <label for="servico">Serviço / Detalhes:</label>
+            <input type="text" id="servico" required placeholder="Ex: Atendimento / Consulta">
         </div>
         <div class="btn-container">
-            <button type="submit" class="btn-salvar">Salvar Cliente</button>
+            <button type="submit" class="btn-salvar">Confirmar Agendamento</button>
         </div>
     </form>
 
-    <h2>Clientes Cadastrados</h2>
+    <h2>Tabela de Clientes Carlamitertech</h2>
     
-    <!-- BARRA DE PESQUISA E BOTÃO EXCEL -->
+    <!-- BARRA DE PESQUISA E BOTÕES DE EXPORTAÇÃO -->
     <div class="controles-tabela">
         <input type="text" id="busca" class="busca-input" placeholder="🔍 Pesquisar por nome ou CPF...">
-        <button id="btnExportar" class="btn-excel" onclick="exportarParaExcel()">📊 Exportar para Excel</button>
+        <div class="botoes-exportacao">
+            <button id="btnExportarExcel" class="btn-excel" onclick="exportarParaExcel()">📊 Exportar para Excel</button>
+            <button id="btnExportarPdf" class="btn-pdf" onclick="exportarParaPDF()">📄 Exportar para PDF</button>
+        </div>
     </div>
 
     <div class="tabela-container">
-        <table id="tabelaClientes">
+        <table id="tabelaAgendamentos">
             <thead>
                 <tr>
                     <th>Nome</th>
                     <th>Telefone</th>
                     <th>CPF</th>
-                    <th>E-mail</th>
-                    <th>Endereço</th>
+                    <th>Data</th>
+                    <th>Horário</th>
+                    <th>Serviço</th>
                     <th>Ações</th>
                 </tr>
             </thead>
@@ -179,14 +265,13 @@
     </div>
 
     <script>
-        const form = document.getElementById('formCliente');
+        const form = document.getElementById('formAgendamento');
         const corpoTabela = document.getElementById('corpoTabela');
         const campoBusca = document.getElementById('busca');
 
-        document.addEventListener('DOMContentLoaded', () => carregarClientes());
+        document.addEventListener('DOMContentLoaded', () => carregarAgendamentos());
 
-        // Ouvinte da barra de pesquisa em tempo real
-        campoBusca.addEventListener('input', () => carregarClientes(campoBusca.value));
+        campoBusca.addEventListener('input', () => carregarAgendamentos(campoBusca.value));
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -194,83 +279,128 @@
             const nome = document.getElementById('nome').value;
             const telefone = document.getElementById('telefone').value;
             const cpf = document.getElementById('cpf').value;
-            const email = document.getElementById('email').value;
-            const endereco = document.getElementById('endereco').value;
+            const data = document.getElementById('data').value;
+            const horario = document.getElementById('horario').value;
+            const servico = document.getElementById('servico').value;
 
-            const cliente = { nome, telefone, cpf, email, endereco };
+            const agendamento = { nome, telefone, cpf, data, horario, servico };
 
-            salvarNoLocalStorage(cliente);
+            salvarNoLocalStorage(agendamento);
             form.reset();
-            carregarClientes();
+            carregarAgendamentos();
         });
 
-        function obterClientes() {
-            const clientes = localStorage.getItem('sistemaClientes');
-            return clientes ? JSON.parse(clientes) : [];
+        function obterAgendamentos() {
+            const agendamentos = localStorage.getItem('sistemaAgendamentosCarlamitertech');
+            return agendamentos ? JSON.parse(agendamentos) : [];
         }
 
-        function salvarNoLocalStorage(cliente) {
-            const clientes = obterClientes();
-            clientes.push(cliente);
-            localStorage.setItem('sistemaClientes', JSON.stringify(clientes));
+        function salvarNoLocalStorage(agendamento) {
+            const agendamentos = obterAgendamentos();
+            agendamentos.push(agendamento);
+            localStorage.setItem('sistemaAgendamentosCarlamitertech', JSON.stringify(agendamentos));
         }
 
-        // Carrega os clientes com opção de filtro para a busca
-        function carregarClientes(filtro = '') {
+        function carregarAgendamentos(filtro = '') {
             corpoTabela.innerHTML = '';
-            const clientes = obterClientes();
+            const agendamentos = obterAgendamentos();
             const termoBusca = filtro.toLowerCase();
 
-            clientes.forEach((cliente, index) => {
-                if (termoBusca && !cliente.nome.toLowerCase().includes(termoBusca) && !cliente.cpf.toLowerCase().includes(termoBusca)) {
+            agendamentos.forEach((item, index) => {
+                if (termoBusca && !item.nome.toLowerCase().includes(termoBusca) && !item.cpf.toLowerCase().includes(termoBusca)) {
                     return; 
                 }
 
                 const linha = document.createElement('tr');
                 linha.innerHTML = `
-                    <td>${cliente.nome}</td>
-                    <td>${cliente.telefone}</td>
-                    <td>${cliente.cpf}</td>
-                    <td>${cliente.email}</td>
-                    <td>${cliente.endereco}</td>
-                    <td><button class="btn-excluir" onclick="excluirCliente(${index})">Excluir</button></td>
+                    <td>${item.nome}</td>
+                    <td>${item.telefone}</td>
+                    <td>${item.cpf}</td>
+                    <td>${item.data.split('-').reverse().join('/')}</td>
+                    <td>${item.horario}</td>
+                    <td>${item.servico}</td>
+                    <td><button class="btn-excluir" onclick="excluirAgendamento(${index})">Excluir</button></td>
                 `;
                 corpoTabela.appendChild(linha);
             });
         }
 
-        function excluirCliente(index) {
-            if(confirm("Tem certeza que deseja excluir este cliente?")) {
-                const clientes = obterClientes();
-                clientes.splice(index, 1);
-                localStorage.setItem('sistemaClientes', JSON.stringify(clientes));
-                carregarClientes(campoBusca.value);
+        function excluirAgendamento(index) {
+            if(confirm("Tem certeza que deseja excluir este agendamento?")) {
+                const agendamentos = obterAgendamentos();
+                agendamentos.splice(index, 1);
+                localStorage.setItem('sistemaAgendamentosCarlamitertech', JSON.stringify(agendamentos));
+                carregarAgendamentos(campoBusca.value);
             }
         }
 
-        // Função para exportar para CSV
         function exportarParaExcel() {
-            const clientes = obterClientes();
-            if (clientes.length === 0) {
+            const agendamentos = obterAgendamentos();
+            if (agendamentos.length === 0) {
                 alert("Não há dados para exportar!");
                 return;
             }
 
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            csvContent += "Nome;Telefone;CPF;E-mail;Endereço\r\n";
+            csvContent += "Nome;Telefone;CPF;Data;Horario;Servico\r\n";
 
-            clientes.forEach(cliente => {
-                const linha = `"${cliente.nome}";"${cliente.telefone}";"${cliente.cpf}";"${cliente.email}";"${cliente.endereco}"`;
+            agendamentos.forEach(item => {
+                const dataFormatada = item.data.split('-').reverse().join('/');
+                const linha = `"${item.nome}";"${item.telefone}";"${item.cpf}";"${dataFormatada}";"${item.horario}";"${item.servico}"`;
                 csvContent += linha + "\r\n";
             });
 
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "lista_de_clientes.csv");
+            link.setAttribute("download", "carlamitertech_clientes.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function exportarParaPDF() {
+            const agendamentos = obterAgendamentos();
+            if (agendamentos.length === 0) {
+                alert("Não há dados para exportar!");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Título do documento PDF
+            doc.setFontSize(18);
+            doc.setTextColor(0, 123, 255);
+            doc.text("Carlamitertech", 14, 20);
+
+            doc.setFontSize(12);
+            doc.setTextColor(100);
+            doc.text("Relatório de Agendamentos e Clientes", 14, 28);
+
+            // Montar dados para a tabela do PDF
+            const colunas = ["Nome", "Telefone", "CPF", "Data", "Horário", "Serviço"];
+            const linhas = agendamentos.map(item => [
+                item.nome,
+                item.telefone,
+                item.cpf,
+                item.data.split('-').reverse().join('/'),
+                item.horario,
+                item.servico
+            ]);
+
+            // Gerar tabela estilizada no PDF
+            doc.autoTable({
+                head: [colunas],
+                body: linhas,
+                startY: 35,
+                headStyles: { fillColor: [0, 123, 255] },
+                alternateRowStyles: { fillColor: [240, 240, 240] },
+                styles: { fontSize: 10, cellPadding: 3 }
+            });
+
+            // Baixar o arquivo PDF
+            doc.save("carlamitertech_clientes.pdf");
         }
     </script>
 </body>
