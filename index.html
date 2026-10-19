@@ -7,7 +7,7 @@
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icones -->
+    <!-- FontAwesome Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Leitor QR / Barcode -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -19,7 +19,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .tab-btn.active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
-        #reader video { object-fit: cover; border-radius: 0.5rem; }
+        #reader video { object-fit: cover; border-radius: 0.5rem; width: 100% !important; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
@@ -353,7 +353,7 @@
 
         </section>
 
-        <!-- ABA 4: MODELO SAAS & SISTEMA DESKTOP (GUIA) -->
+        <!-- ABA 4: MODELO SAAS & SISTEMA DESKTOP -->
         <section id="aba-saas" class="hidden space-y-6">
             
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -407,11 +407,11 @@
     <footer class="bg-slate-900 text-slate-400 text-xs py-4 border-t border-slate-800 mt-auto">
         <div class="max-w-7xl mx-auto px-4 flex flex-wrap justify-between items-center gap-2">
             <p>© 2026 Carlamitertech - Todos os direitos reservados.</p>
-            <p>Desenvolvido para Gestão de Supermercados & PDV PDV/NFC-e</p>
+            <p>Desenvolvido para Gestão de Supermercados & PDV/NFC-e</p>
         </div>
     </footer>
 
-    <!-- LOGICA JAVASCRIPT -->
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
         let html5QrcodeScanner = null;
 
@@ -467,7 +467,7 @@
             localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
         }
 
-        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE VIA CÂMERA ---
+        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE VIA CÂMERA (COM SOLICITAÇÃO ATIVA DE PERMISSÃO) ---
         function alternarLeitor() {
             const wrapper = document.getElementById('reader-wrapper');
             if (wrapper.classList.contains('hidden')) {
@@ -482,13 +482,29 @@
             wrapper.classList.remove('hidden');
             document.getElementById('btn-camera-txt').innerText = "Desativar Câmera";
 
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", 
-                { fps: 10, qrbox: { width: 250, height: 150 } },
-                /* verbose= */ false
-            );
+            // Solicita permissão da câmera ativamente antes de inicializar o leitor
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(function(stream) {
+                    // Liberação concedida, encerra a chamada temporária para liberar para o leitor
+                    stream.getTracks().forEach(track => track.stop());
 
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                    html5QrcodeScanner = new Html5QrcodeScanner(
+                        "reader", 
+                        { fps: 10, qrbox: { width: 250, height: 150 } },
+                        /* verbose= */ false
+                    );
+                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                })
+                .catch(function(err) {
+                    alert("Aviso de Permissão: Não foi possível acionar a câmera. Verifique se concedeu permissão no seu navegador.");
+                    console.error("Erro na permissão da câmera:", err);
+                    pararLeitor();
+                });
+            } else {
+                alert("Seu navegador não suporta acesso direto à câmera.");
+                pararLeitor();
+            }
         }
 
         function pararLeitor() {
