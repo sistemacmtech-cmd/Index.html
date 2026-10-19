@@ -5,407 +5,482 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carlamitertech - Caixa de Supermercado & PDV</title>
     
-    <!-- Biblioteca HTML5 QR Code / Barcode Scanner -->
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leitor QR / Barcode -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
-    <!-- Bibliotecas para exportação e relatórios (PDF) -->
+    <!-- jsPDF para Recibos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background-color: #f4f4f9;
-            box-sizing: border-box;
-        }
-
-        .cabecalho-principal {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .cabecalho-principal h1 {
-            color: #007bff;
-            font-size: 32px;
-            margin: 0 0 5px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .cabecalho-principal p {
-            color: #555;
-            margin: 0;
-            font-size: 16px;
-        }
-
-        /* Sistema de Abas */
-        .abas-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .btn-aba {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-        }
-
-        .btn-aba.ativo {
-            background-color: #007bff;
-        }
-
-        .painel {
-            display: none;
-            max-width: 900px;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .painel.ativo {
-            display: block;
-        }
-
-        h2 { 
-            color: #333; 
-            margin-top: 0; 
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 8px;
-        }
-
-        form { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            margin-bottom: 20px;
-        }
-
-        .campo { 
-            display: flex; 
-            flex-direction: column; 
-        }
-
-        .campo.cheio { 
-            grid-column: span 2; 
-        }
-
-        label { 
-            margin-bottom: 5px; 
-            font-weight: bold; 
-            color: #444;
-        }
-
-        input, select { 
-            padding: 10px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            font-size: 14px;
-        }
-
-        .btn-acao { 
-            background-color: #28a745; 
-            color: white; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: bold;
-            width: 100%;
-        }
-
-        .btn-acao:hover { 
-            background-color: #218838; 
-        }
-
-        .btn-scanner {
-            background-color: #17a2b8;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 15px;
-            width: 100%;
-        }
-
-        .btn-scanner:hover {
-            background-color: #138496;
-        }
-
-        /* Container da Câmera do Leitor */
-        #reader {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto 15px auto;
-            display: none;
-            border: 2px solid #007bff;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .tabela-container { 
-            overflow-x: auto; 
-            margin-top: 15px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-        }
-
-        th, td { 
-            padding: 12px; 
-            text-align: left; 
-            border-bottom: 1px solid #ddd; 
-        }
-
-        th { 
-            background-color: #007bff; 
-            color: white; 
-        }
-
-        tr:hover { 
-            background-color: #f1f1f1; 
-        }
-
-        .btn-excluir, .btn-cancelar-item { 
-            background-color: #dc3545; 
-            color: white; 
-            border: none; 
-            padding: 6px 12px; 
-            border-radius: 4px; 
-            cursor: pointer; 
-        }
-
-        .btn-excluir:hover, .btn-cancelar-item:hover { 
-            background-color: #c82333; 
-        }
-
-        /* Estilo do Caixa / PDV */
-        .painel-caixa {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .painel-caixa {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .total-display {
-            background: #1f7246;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        .pagamento-box {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .tab-btn.active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
+        #reader video { object-fit: cover; border-radius: 0.5rem; }
     </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <div class="cabecalho-principal">
-        <h1>Carlamitertech</h1>
-        <p>Sistema de Caixa e Gestão de Supermercado com Leitor QR / Barcode</p>
-    </div>
+    <!-- Cabeçalho Principal -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-xl font-black text-xl tracking-wider flex items-center gap-2">
+                    <i class="fa-solid font-bold fa-cash-register"></i> C
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight">Carlamitertech <span class="text-xs bg-blue-500/30 text-blue-300 font-semibold px-2 py-0.5 rounded-full border border-blue-400/30">PDV Pro v3.0</span></h1>
+                    <p class="text-xs text-slate-400">Sistema Avançado de Frente de Caixa e Gestão de Estoque</p>
+                </div>
+            </div>
 
-    <!-- Abas de Navegação -->
-    <div class="abas-container">
-        <button class="btn-aba ativo" onclick="mudarAba('caixa', event)">🛒 Frente de Caixa (PDV)</button>
-        <button class="btn-aba" onclick="mudarAba('produtos', event)">📦 Cadastro de Produtos</button>
-    </div>
+            <!-- Status do Operador & Conexão -->
+            <div class="flex items-center gap-4 text-xs">
+                <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Terminal #01 (Caixa Ativo)</span>
+                </div>
+                <div class="hidden sm:flex items-center gap-2 text-slate-300">
+                    <i class="fa-solid fa-user-shield text-blue-400"></i>
+                    <span>Operador: <strong class="text-white">Carla Miter</strong></span>
+                </div>
+            </div>
+        </div>
 
-    <!-- PAINEL 1: FRENTE DE CAIXA (PDV) -->
-    <div id="aba-caixa" class="painel ativo">
-        <h2>Frente de Caixa - Registro e Pagamento</h2>
-        
-        <!-- Botão para Abrir/Fechar Câmera do Leitor -->
-        <button type="button" class="btn-scanner" onclick="alternarLeitor()">📷 Activar / Desactivar Câmera do Leitor (QR / Código de Barras)</button>
-        <div id="reader"></div>
+        <!-- Abas de Navegação -->
+        <div class="bg-slate-800 border-t border-slate-700/60">
+            <div class="max-w-7xl mx-auto px-4 flex gap-2 overflow-x-auto text-sm font-medium text-slate-300">
+                <button onclick="mudarAba('caixa')" id="tab-caixa" class="tab-btn active px-4 py-3 flex items-center gap-2 hover:text-white transition">
+                    <i class="fa-solid fa-cart-shopping"></i> 1. Frente de Caixa (PDV)
+                </button>
+                <button onclick="mudarAba('produtos')" id="tab-produtos" class="tab-btn px-4 py-3 flex items-center gap-2 hover:text-white transition">
+                    <i class="fa-solid fa-boxes-stacked"></i> 2. Gestão de Produtos & Estoque
+                </button>
+                <button onclick="mudarAba('relatorios')" id="tab-relatorios" class="tab-btn px-4 py-3 flex items-center gap-2 hover:text-white transition">
+                    <i class="fa-solid fa-chart-line"></i> 3. Histórico e Relatórios
+                </button>
+                <button onclick="mudarAba('saas')" id="tab-saas" class="tab-btn px-4 py-3 flex items-center gap-2 hover:text-white transition">
+                    <i class="fa-solid fa-cloud"></i> 4. SaaS & Instalação
+                </button>
+            </div>
+        </div>
+    </header>
 
-        <div class="painel-caixa">
-            <div>
-                <form id="formVenda" onsubmit="adicionarAoCaixa(event)">
-                    <div class="campo cheio">
-                        <label for="buscaCodigoBarras">Pesquisar por Código / QR Code:</label>
-                        <input type="text" id="buscaCodigoBarras" placeholder="Digite ou escaneie o código..." oninput="buscarPorCodigo()">
+    <!-- Conteúdo Principal -->
+    <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-grow">
+
+        <!-- ABA 1: FRENTE DE CAIXA (PDV) -->
+        <section id="aba-caixa" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Painel Esquerdo: Entrada de Produtos -->
+            <div class="lg:col-span-7 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
+                
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-barcode text-blue-600"></i> Entrada de Itens
+                    </h2>
+                    <button onclick="alternarLeitor()" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-2 transition border border-indigo-200">
+                        <i class="fa-solid fa-camera"></i> <span id="btn-camera-txt">Ativar Câmera Scanner</span>
+                    </button>
+                </div>
+
+                <!-- Container Câmera Scanner -->
+                <div id="reader-wrapper" class="hidden bg-slate-900 p-3 rounded-xl border border-slate-700">
+                    <div id="reader" class="w-full"></div>
+                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Aproxime o código de barras ou QR Code da câmera</p>
+                </div>
+
+                <!-- Formulário de Busca e Registro -->
+                <form id="formVenda" onsubmit="adicionarAoCaixa(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Código de Barras ou QR Code</label>
+                            <div class="relative">
+                                <input type="text" id="buscaCodigoBarras" placeholder="Escaneie ou digite o código..." oninput="buscarPorCodigo()" autocomplete="off"
+                                    class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                                <i class="fa-solid fa-barcode absolute left-3 top-3 text-slate-400"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Quantidade</label>
+                            <input type="number" id="quantidadeVenda" min="1" value="1" required
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-center focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                        </div>
                     </div>
 
-                    <div class="campo cheio">
-                        <label for="produtoSelecionado">Ou Selecione o Produto:</label>
-                        <select id="produtoSelecionado" required onchange="preencherPreco()">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Seleção Manual do Produto</label>
+                        <select id="produtoSelecionado" onchange="preencherPreco()"
+                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                             <option value="">Selecione um produto cadastrado...</option>
                         </select>
                     </div>
 
-                    <div class="campo">
-                        <label for="quantidadeVenda">Quantidade:</label>
-                        <input type="number" id="quantidadeVenda" min="1" value="1" required>
+                    <div class="grid grid-cols-2 gap-3 items-center">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Preço Unitário</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-sm font-semibold text-slate-500">R$</span>
+                                <input type="text" id="precoUnitario" disabled readonly placeholder="0,00"
+                                    class="w-full pl-10 pr-3 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold text-slate-700">
+                            </div>
+                        </div>
+
+                        <div class="pt-5">
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-plus-circle"></i> Adicionar Item
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Tabela de Itens da Compra Atual -->
+                <div class="mt-2 flex-grow">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Itens Registrados na Compra</h3>
+                        <span id="contador-itens" class="text-xs bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded">0 itens</span>
                     </div>
 
-                    <div class="campo">
-                        <label for="precoUnitario">Preço Unitário (R$):</label>
-                        <input type="text" id="precoUnitario" disabled style="background: #e9ecef;">
+                    <div class="border border-slate-200 rounded-xl overflow-hidden max-h-[300px] overflow-y-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200 sticky top-0">
+                                <tr>
+                                    <th class="py-2.5 px-3">Item</th>
+                                    <th class="py-2.5 px-2 text-center">Qtd</th>
+                                    <th class="py-2.5 px-3 text-right">Preço Un.</th>
+                                    <th class="py-2.5 px-3 text-right">Subtotal</th>
+                                    <th class="py-2.5 px-2 text-center">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpoCaixa" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- Preenchido dinamicamente via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Painel Direito: Totais, Pagamento e Finalização -->
+            <div class="lg:col-span-5 flex flex-col gap-4">
+                
+                <!-- Visor Digital de Total -->
+                <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-md border border-slate-800 flex flex-col justify-between">
+                    <div class="flex justify-between items-center text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                        <span>Total da Compra</span>
+                        <i class="fa-solid fa-receipt text-slate-500 text-lg"></i>
+                    </div>
+                    <div class="my-3 text-right">
+                        <span id="displayTotal" class="text-4xl font-extrabold text-emerald-400 tracking-tight">R$ 0,00</span>
+                    </div>
+                    <div class="text-xs text-slate-400 flex justify-between pt-2 border-t border-slate-800">
+                        <span>Operação de Venda Direta</span>
+                        <span id="hora-atual">--:--:--</span>
+                    </div>
+                </div>
+
+                <!-- Quadrante de Pagamento -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex-grow flex flex-col justify-between gap-4">
+                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-credit-card text-blue-600"></i> Fechamento de Pagamento
+                    </h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Forma de Pagamento</label>
+                            <select id="formaPagamento" onchange="verificarFormaPagamento()"
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                                <option value="Dinheiro">💵 Dinheiro</option>
+                                <option value="Pix">⚡ Pix (QR Code Automático)</option>
+                                <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                                <option value="Cartão de Débito">💳 Cartão de Débito</option>
+                            </select>
+                        </div>
+
+                        <!-- Campo para Troco (se Dinheiro) -->
+                        <div id="box-dinheiro" class="space-y-2">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Valor Recebido (R$)</label>
+                            <input type="number" step="0.01" id="valorRecebido" placeholder="Ex: 50.00" oninput="calcularTroco()"
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-lg font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                            
+                            <div class="flex justify-between items-center px-3 py-2 bg-slate-100 rounded-lg text-xs">
+                                <span class="font-medium text-slate-600">Troco a Devolver:</span>
+                                <span id="displayTroco" class="font-bold text-slate-900 text-sm">R$ 0,00</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="btn-container cheio">
-                        <button type="submit" class="btn-acao">➕ Registrar / Adicionar Item</button>
+                    <div class="space-y-2 pt-2">
+                        <button onclick="finalizarPagamento()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base">
+                            <i class="fa-solid fa-check-circle"></i> Finalizar Venda & Emitir Recibo
+                        </button>
+                        <button onclick="cancelarVendaToda()" class="w-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-semibold py-2 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Cancelar Toda a Compra
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ABA 2: CADASTRO DE PRODUTOS E GESTÃO DE ESTOQUE -->
+        <section id="aba-produtos" class="hidden space-y-6">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-box-open text-blue-600"></i> Cadastrar / Atualizar Produto no Banco
+                </h2>
+
+                <form id="formProduto" onsubmit="salvarProduto(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Código / QR Code</label>
+                        <input type="text" id="codigoBarras" required placeholder="Ex: 789100123"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nome do Produto</label>
+                        <input type="text" id="nomeProduto" required placeholder="Ex: Arroz Tipo 1 5kg"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Preço de Venda (R$)</label>
+                        <input type="number" step="0.01" id="precoProduto" required placeholder="Ex: 24.90"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Quantidade em Estoque</label>
+                        <input type="number" id="estoqueProduto" required min="0" placeholder="Ex: 50"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Categoria</label>
+                        <input type="text" id="categoriaProduto" required placeholder="Ex: Alimentos Básicos, Bebidas, Limpeza..."
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div class="md:col-span-1 flex items-end">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-save"></i> Salvar Produto
+                        </button>
                     </div>
                 </form>
             </div>
 
-            <div>
-                <div class="total-display" id="displayTotal">
-                    TOTAL: R$ 0,00
+            <!-- Tabela de Produtos Cadastrados -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-slate-600"></i> Produtos Cadastrados no Banco de Dados
+                    </h3>
+                    
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="filtroEstoque" oninput="carregarProdutos()" placeholder="Pesquisar estoque..."
+                            class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
                 </div>
 
-                <div class="pagamento-box">
-                    <h3 style="margin-top:0;">Direcionamento para Pagamento</h3>
-                    <div class="campo" style="margin-bottom: 10px;">
-                        <label for="formaPagamento">Forma de Pagamento:</label>
-                        <select id="formaPagamento">
-                            <option value="Dinheiro">Dinheiro</option>
-                            <option value="Cartão de Crédito">Cartão de Crédito</option>
-                            <option value="Cartão de Débito">Cartão de Débito</option>
-                            <option value="Pix">Pix</option>
-                        </select>
-                    </div>
-                    <div class="campo" style="margin-bottom: 15px;">
-                        <label for="valorRecebido">Valor Recebido (R$):</label>
-                        <input type="number" step="0.01" id="valorRecebido" placeholder="Ex: 50.00">
-                    </div>
-                    <button class="btn-acao" style="background-color: #007bff;" onclick="finalizarPagamento()">💵 Finalizar Pagamento e Emitir Venda</button>
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-4">Código</th>
+                                <th class="py-3 px-4">Nome</th>
+                                <th class="py-3 px-4">Categoria</th>
+                                <th class="py-3 px-4 text-center">Estoque</th>
+                                <th class="py-3 px-4 text-right">Preço Un.</th>
+                                <th class="py-3 px-4 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoProdutos" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Preenchido dinamicamente -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
+        </section>
+
+        <!-- ABA 3: HISTÓRICO E RELATÓRIOS -->
+        <section id="aba-relatorios" class="hidden space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Total de Vendas Acumuladas</p>
+                    <h3 id="metric-total-vendas" class="text-2xl font-black text-slate-900 mt-1">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Qtd de Cupons Emitidos</p>
+                    <h3 id="metric-qtd-vendas" class="text-2xl font-black text-blue-600 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Ticket Médio por Venda</p>
+                    <h3 id="metric-ticket-medio" class="text-2xl font-black text-emerald-600 mt-1">R$ 0,00</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Histórico Transacional de Cupons Emitidos
+                </h3>
+
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-4">Data/Hora</th>
+                                <th class="py-3 px-4">Forma Pagto</th>
+                                <th class="py-3 px-4 text-center">Itens</th>
+                                <th class="py-3 px-4 text-right">Valor Total</th>
+                                <th class="py-3 px-4 text-center">Recibo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoHistorico" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ABA 4: MODELO SAAS & SISTEMA DESKTOP (GUIA) -->
+        <section id="aba-saas" class="hidden space-y-6">
+            
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-server text-blue-600"></i> Opções de Arquitetura de Implantação do Sistema
+                </h2>
+                <p class="text-slate-600 text-sm mb-6">
+                    Abaixo estão as especificações para disponibilizar o <strong>Carlamitertech PDV</strong> aos seus clientes finais:
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Opção 1: SaaS Web -->
+                    <div class="border border-blue-200 bg-blue-50/50 p-5 rounded-xl space-y-3">
+                        <div class="flex items-center gap-2 text-blue-700 font-bold text-lg">
+                            <i class="fa-solid fa-globe"></i> Modelo SaaS Web (Online)
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            O cliente acessa diretamente via navegador de qualquer computador ou tablet na loja.
+                        </p>
+                        <ul class="text-xs text-slate-700 space-y-1.5 list-disc pl-4">
+                            <li><strong>Link de Acesso:</strong> <code class="bg-white px-2 py-0.5 rounded border border-blue-200 text-blue-600 font-mono">https://pdv.carlamitertech.com.br</code></li>
+                            <li><strong>Credenciais Padrão:</strong> Usuário: <code class="bg-white px-1 rounded">caixa01</code> | Senha: <code class="bg-white px-1 rounded">123456</code></li>
+                            <li>Sincronização em nuvem e suporte a múltiplos caixas em tempo real.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Opção 2: Desktop Instalado -->
+                    <div class="border border-slate-200 bg-slate-50 p-5 rounded-xl space-y-3">
+                        <div class="flex items-center gap-2 text-slate-800 font-bold text-lg">
+                            <i class="fa-solid fa-desktop"></i> Modelo Desktop (Instalado no Caixa)
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            O sistema roda como aplicativo isolado no computador do supermercado (.EXE/.MSI via Electron ou NW.js).
+                        </p>
+                        <ul class="text-xs text-slate-700 space-y-1.5 list-disc pl-4">
+                            <li><strong>Instalação Remota:</strong> Realizada via AnyDesk ou TeamViewer.</li>
+                            <li><strong>Instalador Offline:</strong> Pacote <code class="bg-white px-2 py-0.5 rounded border text-slate-600 font-mono">Carlamitertech-PDV-Setup.exe</code></li>
+                            <li>Funciona mesmo sem internet com armazenamento em banco de dados local.</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-4 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-wrap justify-between items-center gap-2">
+            <p>© 2026 Carlamitertech - Todos os direitos reservados.</p>
+            <p>Desenvolvido para Gestão de Supermercados & PDV PDV/NFC-e</p>
         </div>
+    </footer>
 
-        <h3>Itens Lançados na Compra Atual (Cancelamento de Produtos)</h3>
-        <div class="tabela-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Qtd</th>
-                        <th>Preço Un.</th>
-                        <th>Subtotal</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="corpoCaixa">
-                    <!-- Itens da venda atual -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- PAINEL 2: CADASTRO DE PRODUTOS -->
-    <div id="aba-produtos" class="painel">
-        <h2>Cadastro de Produtos no Banco de Dados</h2>
-        <form id="formProduto" onsubmit="salvarProduto(event)">
-            <div class="campo">
-                <label for="codigoBarras">Código / QR Code:</label>
-                <input type="text" id="codigoBarras" required placeholder="Ex: 789100123">
-            </div>
-            <div class="campo">
-                <label for="nomeProduto">Nome do Produto:</label>
-                <input type="text" id="nomeProduto" required placeholder="Ex: Arroz 5kg">
-            </div>
-            <div class="campo">
-                <label for="precoProduto">Preço de Venda (R$):</label>
-                <input type="number" step="0.01" id="precoProduto" required placeholder="Ex: 24.90">
-            </div>
-            <div class="campo">
-                <label for="categoriaProduto">Categoria:</label>
-                <input type="text" id="categoriaProduto" required placeholder="Ex: Alimentos">
-            </div>
-            <div class="btn-container cheio">
-                <button type="submit" class="btn-acao">Salvar Produto no Banco</button>
-            </div>
-        </form>
-
-        <h3>Produtos Cadastrados</h3>
-        <div class="tabela-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Nome</th>
-                        <th>Preço (R$)</th>
-                        <th>Categoria</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="corpoProdutos">
-                    <!-- Produtos do banco -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+    <!-- LOGICA JAVASCRIPT -->
     <script>
         let html5QrcodeScanner = null;
 
+        // Produtos Iniciais Padrão para Demonstração
+        const produtosIniciais = [
+            { codigo: "78910001", nome: "Arroz Tipo 1 5kg", preco: 26.90, categoria: "Alimentos", estoque: 40 },
+            { codigo: "78910002", nome: "Feijão Carioca 1kg", preco: 7.50, categoria: "Alimentos", estoque: 85 },
+            { codigo: "78910003", nome: "Leite Integral 1L", preco: 4.89, categoria: "Laticínios", estoque: 120 },
+            { codigo: "78910004", nome: "Óleo de Soja 900ml", preco: 6.20, categoria: "Alimentos", estoque: 60 },
+            { codigo: "78910005", nome: "Café Torrado 500g", preco: 16.90, categoria: "Matinais", estoque: 30 }
+        ];
+
         document.addEventListener('DOMContentLoaded', () => {
+            inicializarBanco();
             carregarProdutos();
             atualizarSelectProdutos();
             carregarCarrinho();
+            carregarHistorico();
+            atualizarHora();
+            setInterval(atualizarHora, 1000);
         });
 
-        function mudarAba(aba, evt) {
-            document.querySelectorAll('.painel').forEach(p => p.classList.remove('ativo'));
-            document.querySelectorAll('.btn-aba').forEach(b => b.classList.remove('ativo'));
-
-            if (html5QrcodeScanner) {
-                pararLeitor();
-            }
-
-            if(aba === 'caixa') {
-                document.getElementById('aba-caixa').classList.add('ativo');
-            } else {
-                document.getElementById('aba-produtos').classList.add('ativo');
-            }
-            evt.target.classList.add('ativo');
+        function atualizarHora() {
+            const now = new Date();
+            const el = document.getElementById('hora-atual');
+            if(el) el.innerText = now.toLocaleTimeString('pt-BR');
         }
 
-        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE COM CÂMERA ---
+        // --- SISTEMA DE NAVEGAÇÃO ENTRE ABAS ---
+        function mudarAba(aba) {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            if (html5QrcodeScanner) pararLeitor();
+
+            document.getElementById(`aba-${aba}`).classList.remove('hidden');
+            document.getElementById(`tab-${aba}`).classList.add('active');
+        }
+
+        // --- BANCO DE DADOS LOCALSTORAGE ---
+        function inicializarBanco() {
+            if (!localStorage.getItem('carlamitertech_produtos')) {
+                localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtosIniciais));
+            }
+        }
+
+        function obterProdutosDB() {
+            const prod = localStorage.getItem('carlamitertech_produtos');
+            return prod ? JSON.parse(prod) : [];
+        }
+
+        function salvarProdutosDB(produtos) {
+            localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
+        }
+
+        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE VIA CÂMERA ---
         function alternarLeitor() {
-            const readerDiv = document.getElementById('reader');
-            if (readerDiv.style.display === 'block') {
-                pararLeitor();
-            } else {
+            const wrapper = document.getElementById('reader-wrapper');
+            if (wrapper.classList.contains('hidden')) {
                 iniciarLeitor();
+            } else {
+                pararLeitor();
             }
         }
 
         function iniciarLeitor() {
-            const readerDiv = document.getElementById('reader');
-            readerDiv.style.display = 'block';
+            const wrapper = document.getElementById('reader-wrapper');
+            wrapper.classList.remove('hidden');
+            document.getElementById('btn-camera-txt').innerText = "Desativar Câmera";
 
             html5QrcodeScanner = new Html5QrcodeScanner(
                 "reader", 
@@ -418,21 +493,34 @@
 
         function pararLeitor() {
             if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear().catch(error => console.error(error));
+                html5QrcodeScanner.clear().catch(e => console.error(e));
                 html5QrcodeScanner = null;
             }
-            document.getElementById('reader').style.display = 'none';
+            document.getElementById('reader-wrapper').classList.add('hidden');
+            document.getElementById('btn-camera-txt').innerText = "Ativar Câmera Scanner";
         }
 
-        function onScanSuccess(decodedText, decodedResult) {
+        function onScanSuccess(decodedText) {
             document.getElementById('buscaCodigoBarras').value = decodedText;
             buscarPorCodigo();
+            tocarBeep();
             pararLeitor();
-            alert(`Produto identificado: Código ${decodedText}`);
         }
 
         function onScanFailure(error) {
-            // Falha contínua de leitura enquanto procura o código (silencioso)
+            // Leitura contínua
+        }
+
+        function tocarBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, ctx.currentTime);
+                osc.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } catch(e){}
         }
 
         function buscarPorCodigo() {
@@ -451,52 +539,66 @@
             }
         }
 
-        // --- GERENCIAMENTO DE PRODUTOS (BANCO DE DADOS) ---
-        function obterProdutosDB() {
-            const prod = localStorage.getItem('carlamitertech_produtos');
-            return prod ? JSON.parse(prod) : [];
-        }
-
+        // --- GESTÃO DE PRODUTOS ---
         function salvarProduto(e) {
             e.preventDefault();
             const codigo = document.getElementById('codigoBarras').value.trim();
-            const nome = document.getElementById('nomeProduto').value;
+            const nome = document.getElementById('nomeProduto').value.trim();
             const preco = parseFloat(document.getElementById('precoProduto').value);
-            const categoria = document.getElementById('categoriaProduto').value;
+            const estoque = parseInt(document.getElementById('estoqueProduto').value);
+            const categoria = document.getElementById('categoriaProduto').value.trim();
 
-            const produtos = obterProdutosDB();
-            produtos.push({ codigo, nome, preco, categoria });
-            localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
+            let produtos = obterProdutosDB();
+            const idxExistente = produtos.findIndex(p => p.codigo === codigo);
 
+            if (idxExistente !== -1) {
+                produtos[idxExistente] = { codigo, nome, preco, estoque, categoria };
+            } else {
+                produtos.push({ codigo, nome, preco, estoque, categoria });
+            }
+
+            salvarProdutosDB(produtos);
             document.getElementById('formProduto').reset();
             carregarProdutos();
             atualizarSelectProdutos();
-            alert("Produto cadastrado com sucesso!");
+            alert("Produto salvo com sucesso no banco de dados!");
         }
 
         function carregarProdutos() {
             const corpo = document.getElementById('corpoProdutos');
+            if(!corpo) return;
             corpo.innerHTML = '';
-            const produtos = obterProdutosDB();
+            
+            const termo = (document.getElementById('filtroEstoque')?.value || '').toLowerCase();
+            const produtos = obterProdutosDB().filter(p => 
+                p.nome.toLowerCase().includes(termo) || 
+                p.codigo.toLowerCase().includes(termo) ||
+                p.categoria.toLowerCase().includes(termo)
+            );
 
             produtos.forEach((p, index) => {
+                const estoqueClasse = p.estoque <= 5 ? 'text-rose-600 font-bold bg-rose-50' : 'text-slate-700';
                 corpo.innerHTML += `
-                    <tr>
-                        <td>${p.codigo}</td>
-                        <td>${p.nome}</td>
-                        <td>R$ ${p.preco.toFixed(2)}</td>
-                        <td>${p.categoria}</td>
-                        <td><button class="btn-excluir" onclick="excluirProduto(${index})">Excluir</button></td>
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="py-2.5 px-4 font-mono text-xs font-semibold">${p.codigo}</td>
+                        <td class="py-2.5 px-4 font-medium">${p.nome}</td>
+                        <td class="py-2.5 px-4"><span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">${p.categoria}</span></td>
+                        <td class="py-2.5 px-4 text-center ${estoqueClasse}">${p.estoque} un</td>
+                        <td class="py-2.5 px-4 text-right font-bold text-slate-900">R$ ${p.preco.toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-center">
+                            <button onclick="excluirProduto('${p.codigo}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition">
+                                <i class="fa-solid fa-trash-can"></i> Excluir
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
         }
 
-        function excluirProduto(index) {
-            if(confirm("Deseja excluir este produto do cadastro?")) {
-                let produtos = obterProdutosDB();
-                produtos.splice(index, 1);
-                localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
+        function excluirProduto(codigo) {
+            if(confirm(`Deseja remover o produto código ${codigo}?`)) {
+                let produtos = obterProdutosDB().filter(p => p.codigo !== codigo);
+                salvarProdutosDB(produtos);
                 carregarProdutos();
                 atualizarSelectProdutos();
             }
@@ -504,6 +606,7 @@
 
         function atualizarSelectProdutos() {
             const select = document.getElementById('produtoSelecionado');
+            if(!select) return;
             select.innerHTML = '<option value="">Selecione um produto cadastrado...</option>';
             const produtos = obterProdutosDB();
             produtos.forEach((p, idx) => {
@@ -521,10 +624,14 @@
             }
         }
 
-        // --- FRENTE DE CAIXA E CARRINHO (REGISTRO E CANCELAMENTO DE ITENS) ---
+        // --- CARRINHO & OPERAÇÃO DE CAIXA ---
         function obterCarrinho() {
             const carr = localStorage.getItem('carlamitertech_carrinho');
             return carr ? JSON.parse(carr) : [];
+        }
+
+        function salvarCarrinho(carrinho) {
+            localStorage.setItem('carlamitertech_carrinho', JSON.stringify(carrinho));
         }
 
         function adicionarAoCaixa(e) {
@@ -540,22 +647,30 @@
             const produtos = obterProdutosDB();
             const produtoEscolhido = produtos[idx];
 
+            if (produtoEscolhido.estoque < qtd) {
+                alert(`Atenção: Estoque insuficiente! Disponível: ${produtoEscolhido.estoque} un`);
+                return;
+            }
+
             let carrinho = obterCarrinho();
             carrinho.push({
+                codigo: produtoEscolhido.codigo,
                 nome: produtoEscolhido.nome,
                 qtd: qtd,
                 preco: produtoEscolhido.preco,
                 subtotal: produtoEscolhido.preco * qtd
             });
 
-            localStorage.setItem('carlamitertech_carrinho', JSON.stringify(carrinho));
+            salvarCarrinho(carrinho);
             document.getElementById('formVenda').reset();
             document.getElementById('precoUnitario').value = "";
             carregarCarrinho();
+            tocarBeep();
         }
 
         function carregarCarrinho() {
             const corpo = document.getElementById('corpoCaixa');
+            if(!corpo) return;
             corpo.innerHTML = '';
             const carrinho = obterCarrinho();
             let totalGeral = 0;
@@ -563,55 +678,209 @@
             carrinho.forEach((item, index) => {
                 totalGeral += item.subtotal;
                 corpo.innerHTML += `
-                    <tr>
-                        <td>${item.nome}</td>
-                        <td>${item.qtd}</td>
-                        <td>R$ ${item.preco.toFixed(2)}</td>
-                        <td>R$ ${item.subtotal.toFixed(2)}</td>
-                        <td><button class="btn-cancelar-item" onclick="cancelarItem(${index})">❌ Cancelar Item</button></td>
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2 px-3 font-medium">${item.nome}</td>
+                        <td class="py-2 px-2 text-center font-bold">${item.qtd}</td>
+                        <td class="py-2 px-3 text-right">R$ ${item.preco.toFixed(2)}</td>
+                        <td class="py-2 px-3 text-right font-bold text-slate-900">R$ ${item.subtotal.toFixed(2)}</td>
+                        <td class="py-2 px-2 text-center">
+                            <button onclick="cancelarItem(${index})" class="text-rose-500 hover:text-rose-700 text-xs p-1">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
 
-            document.getElementById('displayTotal').innerText = `TOTAL: R$ ${totalGeral.toFixed(2)}`;
+            document.getElementById('displayTotal').innerText = `R$ ${totalGeral.toFixed(2)}`;
+            document.getElementById('contador-itens').innerText = `${carrinho.length} itens`;
+            calcularTroco();
         }
 
-        // FUNÇÃO DE CANCELAMENTO DE UM PRODUTO REGISTRADO NA VENDA
         function cancelarItem(index) {
-            if(confirm("Tem certeza que deseja cancelar e remover este produto da compra atual?")) {
-                let carrinho = obterCarrinho();
-                carrinho.splice(index, 1);
-                localStorage.setItem('carlamitertech_carrinho', JSON.stringify(carrinho));
+            let carrinho = obterCarrinho();
+            carrinho.splice(index, 1);
+            salvarCarrinho(carrinho);
+            carregarCarrinho();
+        }
+
+        function cancelarVendaToda() {
+            if(confirm("Deseja realmente cancelar todos os itens da compra atual?")) {
+                localStorage.removeItem('carlamitertech_carrinho');
                 carregarCarrinho();
             }
         }
 
-        // DIRECIOMANENTO PARA PAGAMENTO
+        function verificarFormaPagamento() {
+            const forma = document.getElementById('formaPagamento').value;
+            const boxDinheiro = document.getElementById('box-dinheiro');
+            if (forma === 'Dinheiro') {
+                boxDinheiro.classList.remove('hidden');
+            } else {
+                boxDinheiro.classList.add('hidden');
+            }
+        }
+
+        function calcularTroco() {
+            const carrinho = obterCarrinho();
+            const total = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
+            const recebido = parseFloat(document.getElementById('valorRecebido').value) || 0;
+            const troco = recebido - total;
+
+            const elTroco = document.getElementById('displayTroco');
+            if (troco >= 0) {
+                elTroco.innerText = `R$ ${troco.toFixed(2)}`;
+                elTroco.className = "font-bold text-emerald-600 text-sm";
+            } else {
+                elTroco.innerText = `Falta R$ ${Math.abs(troco).toFixed(2)}`;
+                elTroco.className = "font-bold text-rose-600 text-sm";
+            }
+        }
+
+        // --- FINALIZAÇÃO E EMISSÃO DE RECIBO PDF ---
         function finalizarPagamento() {
             const carrinho = obterCarrinho();
-            if(carrinho.length === 0) {
-                alert("Não há produtos lançados no caixa!");
+            if (carrinho.length === 0) {
+                alert("O carrinho está vazio! Adicione produtos antes de finalizar.");
                 return;
             }
 
-            let totalGeral = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
+            const total = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
             const forma = document.getElementById('formaPagamento').value;
-            const valorRecebido = parseFloat(document.getElementById('valorRecebido').value);
+            const recebido = parseFloat(document.getElementById('valorRecebido').value) || 0;
 
-            if(forma === 'Dinheiro') {
-                if(isNaN(valorRecebido) || valorRecebido < totalGeral) {
-                    alert("Valor recebido insuficiente para pagamento em dinheiro!");
-                    return;
-                }
-                const troco = valorRecebido - totalGeral;
-                alert(`Pagamento aprovado via Dinheiro!\nTotal: R$ ${totalGeral.toFixed(2)}\nTroco: R$ ${troco.toFixed(2)}`);
-            } else {
-                alert(`Pagamento aprovado via ${forma} no valor de R$ ${totalGeral.toFixed(2)}!`);
+            if (forma === 'Dinheiro' && recebido < total) {
+                alert("O valor recebido em dinheiro é menor que o total da compra!");
+                return;
             }
 
+            // Dar baixa no estoque
+            let produtos = obterProdutosDB();
+            carrinho.forEach(item => {
+                const idx = produtos.findIndex(p => p.codigo === item.codigo);
+                if (idx !== -1) {
+                    produtos[idx].estoque = Math.max(0, produtos[idx].estoque - item.qtd);
+                }
+            });
+            salvarProdutosDB(produtos);
+
+            // Salvar no Histórico
+            const venda = {
+                id: Date.now(),
+                data: new Date().toLocaleString('pt-BR'),
+                itens: carrinho,
+                total: total,
+                formaPagamento: forma,
+                valorRecebido: forma === 'Dinheiro' ? recebido : total,
+                troco: forma === 'Dinheiro' ? (recebido - total) : 0
+            };
+
+            let historico = JSON.parse(localStorage.getItem('carlamitertech_historico') || '[]');
+            historico.unshift(venda);
+            localStorage.setItem('carlamitertech_historico', JSON.stringify(historico));
+
+            // Gerar PDF do Recibo
+            gerarReciboPDF(venda);
+
+            // Limpar Carrinho
             localStorage.removeItem('carlamitertech_carrinho');
             document.getElementById('valorRecebido').value = '';
             carregarCarrinho();
+            carregarProdutos();
+            carregarHistorico();
+
+            alert("Venda realizada e concluída com sucesso!");
+        }
+
+        function gerarReciboPDF(venda) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: [80, 150] }); // Formato Cupom Não Fiscal
+
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.text('CARLAMITERTECH SUPERMERCADO', 40, 8, { align: 'center' });
+            
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.text('CNPJ: 00.000.000/0001-00 - Poços de Caldas / MG', 40, 12, { align: 'center' });
+            doc.text('CUPOM NÃO FISCAL DE COMPRA', 40, 15, { align: 'center' });
+            doc.text(`Data/Hora: ${venda.data}`, 5, 20);
+            doc.text(`Cupom Nº: ${venda.id}`, 5, 23);
+            doc.text('------------------------------------------------------------------', 5, 26);
+
+            let y = 30;
+            doc.setFont('Helvetica', 'bold');
+            doc.text('QTD  ITEM                         R$ UN     SUBTOTAL', 5, y);
+            doc.setFont('Helvetica', 'normal');
+
+            venda.itens.forEach(item => {
+                y += 5;
+                const nomeTrunc = item.nome.length > 18 ? item.nome.substring(0, 18) + '.' : item.nome;
+                doc.text(`${item.qtd}x   ${nomeTrunc.padEnd(20)} ${item.preco.toFixed(2)}    ${item.subtotal.toFixed(2)}`, 5, y);
+            });
+
+            y += 6;
+            doc.text('------------------------------------------------------------------', 5, y);
+            y += 5;
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.text(`TOTAL DA COMPRA: R$ ${venda.total.toFixed(2)}`, 5, y);
+            doc.setFontSize(7);
+            doc.setFont('Helvetica', 'normal');
+            y += 4;
+            doc.text(`Forma de Pagamento: ${venda.formaPagamento}`, 5, y);
+
+            if (venda.formaPagamento === 'Dinheiro') {
+                y += 4;
+                doc.text(`Valor Recebido: R$ ${venda.valorRecebido.toFixed(2)}`, 5, y);
+                y += 4;
+                doc.text(`Troco: R$ ${venda.troco.toFixed(2)}`, 5, y);
+            }
+
+            y += 8;
+            doc.text('Obrigado pela preferência e volte sempre!', 40, y, { align: 'center' });
+
+            doc.save(`Recibo_Carlamitertech_${venda.id}.pdf`);
+        }
+
+        // --- RELATÓRIOS & HISTÓRICO ---
+        function carregarHistorico() {
+            const corpo = document.getElementById('corpoHistorico');
+            if(!corpo) return;
+            corpo.innerHTML = '';
+
+            const historico = JSON.parse(localStorage.getItem('carlamitertech_historico') || '[]');
+            
+            let totalGeralVendas = 0;
+            
+            historico.forEach(venda => {
+                totalGeralVendas += venda.total;
+                corpo.innerHTML += `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="py-2.5 px-4 font-medium text-xs">${venda.data}</td>
+                        <td class="py-2.5 px-4"><span class="bg-blue-50 text-blue-700 font-semibold text-xs px-2 py-0.5 rounded">${venda.formaPagamento}</span></td>
+                        <td class="py-2.5 px-4 text-center font-bold text-xs">${venda.itens.length}</td>
+                        <td class="py-2.5 px-4 text-right font-black text-slate-900">R$ ${venda.total.toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-center">
+                            <button onclick='reemitirRecibo(${JSON.stringify(venda)})' class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition">
+                                <i class="fa-solid fa-print"></i> Reemitir
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Atualizar Métricas
+            const qtdVendas = historico.length;
+            const ticketMedio = qtdVendas > 0 ? (totalGeralVendas / qtdVendas) : 0;
+
+            document.getElementById('metric-total-vendas').innerText = `R$ ${totalGeralVendas.toFixed(2)}`;
+            document.getElementById('metric-qtd-vendas').innerText = qtdVendas;
+            document.getElementById('metric-ticket-medio').innerText = `R$ ${ticketMedio.toFixed(2)}`;
+        }
+
+        function reemitirRecibo(venda) {
+            gerarReciboPDF(venda);
         }
     </script>
 </body>
