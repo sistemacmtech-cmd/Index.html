@@ -413,7 +413,7 @@
 
     <!-- LÓGICA JAVASCRIPT -->
     <script>
-        let html5QrcodeScanner = null;
+        let html5Qrcode = null;
 
         // Produtos Iniciais Padrão para Demonstração
         const produtosIniciais = [
@@ -445,7 +445,7 @@
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
-            if (html5QrcodeScanner) pararLeitor();
+            if (html5Qrcode) pararLeitor();
 
             document.getElementById(`aba-${aba}`).classList.remove('hidden');
             document.getElementById(`tab-${aba}`).classList.add('active');
@@ -467,7 +467,7 @@
             localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
         }
 
-        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE VIA CÂMERA (COM SOLICITAÇÃO ATIVA DE PERMISSÃO) ---
+        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE VIA CÂMERA (DIRETO NA TRASEIRA) ---
         function alternarLeitor() {
             const wrapper = document.getElementById('reader-wrapper');
             if (wrapper.classList.contains('hidden')) {
@@ -482,35 +482,39 @@
             wrapper.classList.remove('hidden');
             document.getElementById('btn-camera-txt').innerText = "Desativar Câmera";
 
-            // Solicita permissão da câmera ativamente antes de inicializar o leitor
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(function(stream) {
-                    // Liberação concedida, encerra a chamada temporária para liberar para o leitor
-                    stream.getTracks().forEach(track => track.stop());
+            document.getElementById('reader').innerHTML = "";
 
-                    html5QrcodeScanner = new Html5QrcodeScanner(
-                        "reader", 
-                        { fps: 10, qrbox: { width: 250, height: 150 } },
-                        /* verbose= */ false
-                    );
-                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                })
-                .catch(function(err) {
-                    alert("Aviso de Permissão: Não foi possível acionar a câmera. Verifique se concedeu permissão no seu navegador.");
-                    console.error("Erro na permissão da câmera:", err);
+            html5Qrcode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+            html5Qrcode.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess, 
+                onScanFailure
+            ).catch(err => {
+                html5Qrcode.start(
+                    { facingMode: "user" }, 
+                    config, 
+                    onScanSuccess, 
+                    onScanFailure
+                ).catch(err2 => {
+                    alert("Não foi possível iniciar a câmera. Verifique as permissões do seu navegador.");
+                    console.error(err2);
                     pararLeitor();
                 });
-            } else {
-                alert("Seu navegador não suporta acesso direto à câmera.");
-                pararLeitor();
-            }
+            });
         }
 
         function pararLeitor() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear().catch(e => console.error(e));
-                html5QrcodeScanner = null;
+            if (html5Qrcode) {
+                html5Qrcode.stop().then(() => {
+                    html5Qrcode.clear();
+                    html5Qrcode = null;
+                }).catch(err => {
+                    console.error("Erro ao parar leitor:", err);
+                    html5Qrcode = null;
+                });
             }
             document.getElementById('reader-wrapper').classList.add('hidden');
             document.getElementById('btn-camera-txt').innerText = "Ativar Câmera Scanner";
