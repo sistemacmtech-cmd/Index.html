@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Completo de Clientes</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f4f4f9; 
+        }
+        h2 { 
+            color: #333; 
+            margin-top: 30px; 
+        }
+        form { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            max-width: 500px; 
+            margin-bottom: 30px; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+        }
+        .campo { 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .campo.cheio { 
+            grid-column: span 2; 
+        }
+        label { 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+        }
+        input { 
+            padding: 8px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+        }
+        .btn-container { 
+            grid-column: span 2; 
+        }
+        button.btn-salvar { 
+            background-color: #28a745; 
+            color: white; 
+            padding: 10px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            width: 100%; 
+        }
+        button.btn-salvar:hover { 
+            background-color: #218838; 
+        }
+        /* Controles da Tabela (Pesquisa e Excel) */
+        .controles-tabela { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            max-width: 100%; 
+            margin-bottom: 15px; 
+            gap: 15px; 
+        }
+        .busca-input { 
+            padding: 10px; 
+            width: 300px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            font-size: 14px; 
+        }
+        button.btn-excel { 
+            background-color: #1f7246; 
+            color: white; 
+            padding: 10px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
+        button.btn-excel:hover { 
+            background-color: #154c2e; 
+        }
+        .tabela-container { 
+            overflow-x: auto; 
+            background: white; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            border-radius: 8px; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 600px; 
+        }
+        th, td { 
+            padding: 12px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd; 
+        }
+        th { 
+            background-color: #007bff; 
+            color: white; 
+        }
+        tr:hover { 
+            background-color: #f1f1f1; 
+        }
+        .btn-excluir { 
+            background-color: #dc3545; 
+            color: white; 
+            border: none; 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .btn-excluir:hover { 
+            background-color: #c82333; 
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Cadastrar Novo Cliente</h2>
+    <form id="formCliente">
+        <div class="campo cheio">
+            <label for="nome">Nome Completo:</label>
+            <input type="text" id="nome" required placeholder="Ex: João Silva">
+        </div>
+        <div class="campo">
+            <label for="telefone">Telefone:</label>
+            <input type="tel" id="telefone" required placeholder="Ex: (11) 99999-9999">
+        </div>
+        <div class="campo">
+            <label for="cpf">CPF:</label>
+            <input type="text" id="cpf" required placeholder="Ex: 000.000.000-00">
+        </div>
+        <div class="campo cheio">
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" required placeholder="Ex: joao@email.com">
+        </div>
+        <div class="campo cheio">
+            <label for="endereco">Endereço:</label>
+            <input type="text" id="endereco" required placeholder="Ex: Rua Flores, 123 - Centro">
+        </div>
+        <div class="btn-container">
+            <button type="submit" class="btn-salvar">Salvar Cliente</button>
+        </div>
+    </form>
+
+    <h2>Clientes Cadastrados</h2>
+    
+    <!-- BARRA DE PESQUISA E BOTÃO EXCEL -->
+    <div class="controles-tabela">
+        <input type="text" id="busca" class="busca-input" placeholder="🔍 Pesquisar por nome ou CPF...">
+        <button id="btnExportar" class="btn-excel" onclick="exportarParaExcel()">📊 Exportar para Excel</button>
+    </div>
+
+    <div class="tabela-container">
+        <table id="tabelaClientes">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>CPF</th>
+                    <th>E-mail</th>
+                    <th>Endereço</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela">
+                <!-- Linhas inseridas pelo JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const form = document.getElementById('formCliente');
+        const corpoTabela = document.getElementById('corpoTabela');
+        const campoBusca = document.getElementById('busca');
+
+        document.addEventListener('DOMContentLoaded', () => carregarClientes());
+
+        // Ouvinte da barra de pesquisa em tempo real
+        campoBusca.addEventListener('input', () => carregarClientes(campoBusca.value));
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            const cpf = document.getElementById('cpf').value;
+            const email = document.getElementById('email').value;
+            const endereco = document.getElementById('endereco').value;
+
+            const cliente = { nome, telefone, cpf, email, endereco };
+
+            salvarNoLocalStorage(cliente);
+            form.reset();
+            carregarClientes();
+        });
+
+        function obterClientes() {
+            const clientes = localStorage.getItem('sistemaClientes');
+            return clientes ? JSON.parse(clientes) : [];
+        }
+
+        function salvarNoLocalStorage(cliente) {
+            const clientes = obterClientes();
+            clientes.push(cliente);
+            localStorage.setItem('sistemaClientes', JSON.stringify(clientes));
+        }
+
+        // Carrega os clientes com opção de filtro para a busca
+        function carregarClientes(filtro = '') {
+            corpoTabela.innerHTML = '';
+            const clientes = obterClientes();
+            const termoBusca = filtro.toLowerCase();
+
+            clientes.forEach((cliente, index) => {
+                if (termoBusca && !cliente.nome.toLowerCase().includes(termoBusca) && !cliente.cpf.toLowerCase().includes(termoBusca)) {
+                    return; 
+                }
+
+                const linha = document.createElement('tr');
+                linha.innerHTML = `
+                    <td>${cliente.nome}</td>
+                    <td>${cliente.telefone}</td>
+                    <td>${cliente.cpf}</td>
+                    <td>${cliente.email}</td>
+                    <td>${cliente.endereco}</td>
+                    <td><button class="btn-excluir" onclick="excluirCliente(${index})">Excluir</button></td>
+                `;
+                corpoTabela.appendChild(linha);
+            });
+        }
+
+        function excluirCliente(index) {
+            if(confirm("Tem certeza que deseja excluir este cliente?")) {
+                const clientes = obterClientes();
+                clientes.splice(index, 1);
+                localStorage.setItem('sistemaClientes', JSON.stringify(clientes));
+                carregarClientes(campoBusca.value);
+            }
+        }
+
+        // Função para exportar para CSV
+        function exportarParaExcel() {
+            const clientes = obterClientes();
+            if (clientes.length === 0) {
+                alert("Não há dados para exportar!");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+            csvContent += "Nome;Telefone;CPF;E-mail;Endereço\r\n";
+
+            clientes.forEach(cliente => {
+                const linha = `"${cliente.nome}";"${cliente.telefone}";"${cliente.cpf}";"${cliente.email}";"${cliente.endereco}"`;
+                csvContent += linha + "\r\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "lista_de_clientes.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
