@@ -11,20 +11,32 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Leitor QR / Barcode -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <!-- jsPDF para Recibos -->
+    <!-- jsPDF para Recibos PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .tab-btn.active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
-        #reader video, #reader-prod video { object-fit: cover; border-radius: 0.5rem; width: 100% !important; }
+        #reader video, #reader-estoque video { object-fit: cover; border-radius: 0.5rem; width: 100% !important; }
         
+        /* Estilos específicos para impressão do Cupom Térmico */
         @media print {
             body * { visibility: hidden; }
-            #modal-recibo-conteudo, #modal-recibo-conteudo * { visibility: visible; }
-            #modal-recibo-conteudo { position: absolute; left: 0; top: 0; width: 100%; }
+            #cupom-impressao, #cupom-impressao * { visibility: visible; }
+            #cupom-impressao {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 80mm;
+                padding: 5mm;
+                margin: 0;
+                background: #fff;
+                color: #000;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 11px;
+            }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -38,7 +50,7 @@
                     <i class="fa-solid font-bold fa-cash-register"></i> C
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold leading-tight">Carlamitertech <span class="text-xs bg-blue-500/30 text-blue-300 font-semibold px-2 py-0.5 rounded-full border border-blue-400/30">PDV Pro v3.2</span></h1>
+                    <h1 class="text-xl font-bold leading-tight">Carlamitertech <span class="text-xs bg-blue-500/30 text-blue-300 font-semibold px-2 py-0.5 rounded-full border border-blue-400/30">PDV Pro v3.1</span></h1>
                     <p class="text-xs text-slate-400">Sistema Avançado de Frente de Caixa e Gestão de Estoque</p>
                 </div>
             </div>
@@ -63,7 +75,7 @@
                     <i class="fa-solid fa-cart-shopping"></i> 1. Frente de Caixa (PDV)
                 </button>
                 <button onclick="mudarAba('produtos')" id="tab-produtos" class="tab-btn px-4 py-3 flex items-center gap-2 hover:text-white transition">
-                    <i class="fa-solid fa-boxes-stacked"></i> 2. Gestão de Produtos & Estoque
+                    <i class="fa-solid fa-boxes-stacked"></i> 2. Cadastros & Controle de Estoque
                 </button>
                 <button onclick="mudarAba('relatorios')" id="tab-relatorios" class="tab-btn px-4 py-3 flex items-center gap-2 hover:text-white transition">
                     <i class="fa-solid fa-chart-line"></i> 3. Histórico e Relatórios
@@ -86,17 +98,17 @@
                 
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                     <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-barcode text-blue-600"></i> Entrada de Itens
+                        <i class="fa-solid fa-barcode text-blue-600"></i> Entrada de Itens na Venda
                     </h2>
                     <button onclick="alternarLeitorCaixa()" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-2 transition border border-indigo-200">
-                        <i class="fa-solid fa-camera"></i> <span id="btn-camera-txt">Ativar Câmera Scanner</span>
+                        <i class="fa-solid fa-camera"></i> <span id="btn-camera-caixa-txt">Ativar Câmera Scanner</span>
                     </button>
                 </div>
 
                 <!-- Container Câmera Scanner PDV -->
-                <div id="reader-wrapper" class="hidden bg-slate-900 p-3 rounded-xl border border-slate-700">
+                <div id="reader-caixa-wrapper" class="hidden bg-slate-900 p-3 rounded-xl border border-slate-700">
                     <div id="reader" class="w-full"></div>
-                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Aproxime o código de barras ou QR Code da câmera</p>
+                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Aproxime o código de barras da câmera para ler automaticamente</p>
                 </div>
 
                 <!-- Formulário de Busca e Registro -->
@@ -239,29 +251,28 @@
         <section id="aba-produtos" class="hidden space-y-6">
             
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                <div class="flex flex-wrap justify-between items-center border-b border-slate-100 pb-3 mb-4 gap-2">
                     <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-box-open text-blue-600"></i> Cadastrar / Atualizar Produto no Estoque
                     </h2>
-                    <button onclick="alternarLeitorProduto()" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-2 transition border border-indigo-200">
-                        <i class="fa-solid fa-camera"></i> <span id="btn-camera-prod-txt">Ativar Scanner p/ Cadastro</span>
+
+                    <!-- Botão de Escanear para Cadastrar/Atualizar Estoque -->
+                    <button type="button" onclick="alternarLeitorEstoque()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-2 transition shadow-sm">
+                        <i class="fa-solid fa-barcode"></i> <span id="btn-camera-estoque-txt">Escanear Código para Cadastrar / Repor</span>
                     </button>
                 </div>
 
-                <!-- Container Câmera Scanner Produto -->
-                <div id="reader-prod-wrapper" class="hidden bg-slate-900 p-3 rounded-xl border border-slate-700 mb-4">
-                    <div id="reader-prod" class="w-full"></div>
-                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Escaneie o código de barras ou QR Code do produto para preenchimento automático</p>
+                <!-- Leitor de Câmera da Aba Estoque -->
+                <div id="reader-estoque-wrapper" class="hidden bg-slate-900 p-3 rounded-xl border border-slate-700 mb-4">
+                    <div id="reader-estoque" class="w-full"></div>
+                    <p class="text-xs text-center text-slate-300 mt-2"><i class="fa-solid fa-info-circle"></i> Escaneie o código do produto. Se já existir, ele será selecionado para alteração. Se não existir, o código será preenchido para novo cadastro.</p>
                 </div>
 
                 <form id="formProduto" onsubmit="salvarProduto(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Código / QR Code</label>
-                        <div class="relative">
-                            <input type="text" id="codigoBarras" required placeholder="Digite ou escaneie..." oninput="carregarDadosProdutoSeExistir()"
-                                class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            <i class="fa-solid fa-barcode absolute left-3 top-2.5 text-slate-400"></i>
-                        </div>
+                        <input type="text" id="codigoBarras" required placeholder="Ex: 789100123"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono">
                     </div>
 
                     <div>
@@ -277,7 +288,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Qtd em Estoque</label>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Quantidade em Estoque</label>
                         <input type="number" id="estoqueProduto" required min="0" placeholder="Ex: 50"
                             class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
@@ -290,22 +301,25 @@
 
                     <div class="md:col-span-1 flex items-end">
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition flex items-center justify-center gap-2 text-sm">
-                            <i class="fa-solid fa-save"></i> Salvar Produto
+                            <i class="fa-solid fa-save"></i> Salvar no Estoque
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Tabela de Produtos Cadastrados -->
+            <!-- Tabela de Produtos Cadastrados com Edição Rápida e Exclusão do Estoque -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
-                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-list-check text-slate-600"></i> Produtos Cadastrados no Banco de Dados
-                    </h3>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-slate-600"></i> Produtos Cadastrados & Gestão do Estoque
+                        </h3>
+                        <p class="text-xs text-slate-500">Você pode digitar a quantidade diretamente ou usar os botões + / - para dar entrada/baixa.</p>
+                    </div>
                     
                     <div class="flex items-center gap-2">
-                        <input type="text" id="filtroEstoque" oninput="carregarProdutos()" placeholder="Pesquisar estoque..."
-                            class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" id="filtroEstoque" oninput="carregarProdutos()" placeholder="Pesquisar por nome ou código..."
+                            class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none w-64">
                     </div>
                 </div>
 
@@ -316,13 +330,13 @@
                                 <th class="py-3 px-4">Código</th>
                                 <th class="py-3 px-4">Nome</th>
                                 <th class="py-3 px-4">Categoria</th>
-                                <th class="py-3 px-4 text-center">Estoque</th>
+                                <th class="py-3 px-4 text-center">Quantidade Estoque</th>
                                 <th class="py-3 px-4 text-right">Preço Un.</th>
-                                <th class="py-3 px-4 text-center">Ações</th>
+                                <th class="py-3 px-4 text-center">Ações / Gestão</th>
                             </tr>
                         </thead>
                         <tbody id="corpoProdutos" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Preenchido dinamicamente -->
+                            <!-- Preenchido dinamicamente via JS -->
                         </tbody>
                     </table>
                 </div>
@@ -361,7 +375,7 @@
                                 <th class="py-3 px-4">Forma Pagto</th>
                                 <th class="py-3 px-4 text-center">Itens</th>
                                 <th class="py-3 px-4 text-right">Valor Total</th>
-                                <th class="py-3 px-4 text-center">Recibo</th>
+                                <th class="py-3 px-4 text-center">Ações / Comprovante</th>
                             </tr>
                         </thead>
                         <tbody id="corpoHistorico" class="divide-y divide-slate-100 text-slate-700">
@@ -423,31 +437,40 @@
 
     </main>
 
-    <!-- MODAL DE RECIBO / CUPOM TÉRMICO IMPRESSO -->
-    <div id="modalRecibo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
-            <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
-                <h3 class="text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-print"></i> Cupom Térmico Não Fiscal</h3>
-                <button onclick="fecharModalRecibo()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div id="modal-recibo-conteudo" class="p-6 overflow-y-auto font-mono text-xs space-y-3 text-slate-800 bg-amber-50/30">
-                <!-- Conteúdo gerado dinamicamente para impressora térmica -->
+    <!-- MODAL DE VISUALIZAÇÃO E IMPRESSÃO DE COMPROVANTE (TÉRMICO) -->
+    <div id="modal-comprovante" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 m-4 relative border border-slate-200">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-print text-blue-600"></i> Comprovante de Venda
+                </h3>
+                <button onclick="fecharModalComprovante()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
-            <div class="p-4 bg-slate-100 border-t border-slate-200 flex gap-3">
-                <button onclick="window.print()" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-solid fa-print"></i> Imprimir Cupom
+            <!-- Preview do Cupom Impresso -->
+            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs font-mono max-h-80 overflow-y-auto leading-tight text-slate-900" id="preview-cupom-modal">
+                <!-- Conteúdo preenchido dinamicamente via JS -->
+            </div>
+
+            <!-- Ações -->
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="imprimirCupomAtual()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-print"></i> Imprimir Comprovante
                 </button>
-                <button onclick="baixarReciboPDFAtual()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-solid fa-file-pdf"></i> PDF
+                <button onclick="baixarPDFModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-file-pdf"></i> Baixar PDF
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- ÁREA OCULTA DE IMPRESSÃO (Formatada para impressoras térmicas de 80mm) -->
+    <div id="cupom-impressao" class="hidden"></div>
+
     <!-- Rodapé -->
-    <footer class="bg-slate-900 text-slate-400 text-xs py-4 border-t border-slate-800 mt-auto">
+    <footer class="bg-slate-900 text-slate-400 text-xs py-4 border-t border-slate-800 mt-auto no-print">
         <div class="max-w-7xl mx-auto px-4 flex flex-wrap justify-between items-center gap-2">
             <p>© 2026 Carlamitertech - Todos os direitos reservados.</p>
             <p>Desenvolvido para Gestão de Supermercados & PDV/NFC-e</p>
@@ -457,8 +480,8 @@
     <!-- LÓGICA JAVASCRIPT -->
     <script>
         let html5QrcodeCaixa = null;
-        let html5QrcodeProd = null;
-        let ultimaVendaEmitida = null;
+        let html5QrcodeEstoque = null;
+        let vendaAtualModal = null;
 
         // Produtos Iniciais Padrão para Demonstração
         const produtosIniciais = [
@@ -490,8 +513,8 @@
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
-            if (html5QrcodeCaixa) pararLeitorCaixa();
-            if (html5QrcodeProd) pararLeitorProduto();
+            pararLeitorCaixa();
+            pararLeitorEstoque();
 
             document.getElementById(`aba-${aba}`).classList.remove('hidden');
             document.getElementById(`tab-${aba}`).classList.add('active');
@@ -513,9 +536,11 @@
             localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
         }
 
-        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE (FRENTE DE CAIXA) ---
+        // --- LEITORES DE CÓDIGO DE BARRAS / QR CODE ---
+
+        // 1. Leitor da Aba Frente de Caixa (PDV)
         function alternarLeitorCaixa() {
-            const wrapper = document.getElementById('reader-wrapper');
+            const wrapper = document.getElementById('reader-caixa-wrapper');
             if (wrapper.classList.contains('hidden')) {
                 iniciarLeitorCaixa();
             } else {
@@ -524,29 +549,27 @@
         }
 
         function iniciarLeitorCaixa() {
-            const wrapper = document.getElementById('reader-wrapper');
+            const wrapper = document.getElementById('reader-caixa-wrapper');
             wrapper.classList.remove('hidden');
-            document.getElementById('btn-camera-txt').innerText = "Desativar Câmera";
-            document.getElementById('reader').innerHTML = "";
+            document.getElementById('btn-camera-caixa-txt').innerText = "Desativar Câmera";
 
+            document.getElementById('reader').innerHTML = "";
             html5QrcodeCaixa = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
 
-            html5QrcodeCaixa.start({ facingMode: "environment" }, config, (decodedText) => {
-                document.getElementById('buscaCodigoBarras').value = decodedText;
-                buscarPorCodigo();
-                tocarBeep();
-                pararLeitorCaixa();
-            }, () => {}).catch(() => {
-                html5QrcodeCaixa.start({ facingMode: "user" }, config, (decodedText) => {
+            html5QrcodeCaixa.start(
+                { facingMode: "environment" }, 
+                config, 
+                (decodedText) => {
                     document.getElementById('buscaCodigoBarras').value = decodedText;
                     buscarPorCodigo();
                     tocarBeep();
                     pararLeitorCaixa();
-                }, () => {}).catch(() => {
-                    alert("Não foi possível iniciar a câmera.");
-                    pararLeitorCaixa();
-                });
+                }, 
+                () => {}
+            ).catch(err => {
+                alert("Não foi possível iniciar a câmera. Verifique as permissões.");
+                pararLeitorCaixa();
             });
         }
 
@@ -557,70 +580,86 @@
                     html5QrcodeCaixa = null;
                 }).catch(() => { html5QrcodeCaixa = null; });
             }
-            document.getElementById('reader-wrapper').classList.add('hidden');
-            document.getElementById('btn-camera-txt').innerText = "Ativar Câmera Scanner";
+            const wrapper = document.getElementById('reader-caixa-wrapper');
+            if(wrapper) wrapper.classList.add('hidden');
+            const txt = document.getElementById('btn-camera-caixa-txt');
+            if(txt) txt.innerText = "Ativar Câmera Scanner";
         }
 
-        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE (CADASTRO DE PRODUTOS/ESTOQUE) ---
-        function alternarLeitorProduto() {
-            const wrapper = document.getElementById('reader-prod-wrapper');
+        // 2. Leitor da Aba Controle de Estoque
+        function alternarLeitorEstoque() {
+            const wrapper = document.getElementById('reader-estoque-wrapper');
             if (wrapper.classList.contains('hidden')) {
-                iniciarLeitorProduto();
+                iniciarLeitorEstoque();
             } else {
-                pararLeitorProduto();
+                pararLeitorEstoque();
             }
         }
 
-        function iniciarLeitorProduto() {
-            const wrapper = document.getElementById('reader-prod-wrapper');
+        function iniciarLeitorEstoque() {
+            const wrapper = document.getElementById('reader-estoque-wrapper');
             wrapper.classList.remove('hidden');
-            document.getElementById('btn-camera-prod-txt').innerText = "Desativar Scanner";
-            document.getElementById('reader-prod').innerHTML = "";
+            document.getElementById('btn-camera-estoque-txt').innerText = "Fechar Câmera";
 
-            html5QrcodeProd = new Html5Qrcode("reader-prod");
+            document.getElementById('reader-estoque').innerHTML = "";
+            html5QrcodeEstoque = new Html5Qrcode("reader-estoque");
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
 
-            html5QrcodeProd.start({ facingMode: "environment" }, config, (decodedText) => {
-                document.getElementById('codigoBarras').value = decodedText;
-                carregarDadosProdutoSeExistir();
-                tocarBeep();
-                pararLeitorProduto();
-            }, () => {}).catch(() => {
-                html5QrcodeProd.start({ facingMode: "user" }, config, (decodedText) => {
-                    document.getElementById('codigoBarras').value = decodedText;
-                    carregarDadosProdutoSeExistir();
+            html5QrcodeEstoque.start(
+                { facingMode: "environment" }, 
+                config, 
+                (decodedText) => {
                     tocarBeep();
-                    pararLeitorProduto();
-                }, () => {}).catch(() => {
-                    alert("Não foi possível iniciar a câmera.");
-                    pararLeitorProduto();
-                });
+                    processarLeituraEstoque(decodedText);
+                    pararLeitorEstoque();
+                }, 
+                () => {}
+            ).catch(err => {
+                alert("Erro ao acessar a câmera para o estoque.");
+                pararLeitorEstoque();
             });
         }
 
-        function pararLeitorProduto() {
-            if (html5QrcodeProd) {
-                html5QrcodeProd.stop().then(() => {
-                    html5QrcodeProd.clear();
-                    html5QrcodeProd = null;
-                }).catch(() => { html5QrcodeProd = null; });
+        function pararLeitorEstoque() {
+            if (html5QrcodeEstoque) {
+                html5QrcodeEstoque.stop().then(() => {
+                    html5QrcodeEstoque.clear();
+                    html5QrcodeEstoque = null;
+                }).catch(() => { html5QrcodeEstoque = null; });
             }
-            document.getElementById('reader-prod-wrapper').classList.add('hidden');
-            document.getElementById('btn-camera-prod-txt').innerText = "Ativar Scanner p/ Cadastro";
+            const wrapper = document.getElementById('reader-estoque-wrapper');
+            if(wrapper) wrapper.classList.add('hidden');
+            const txt = document.getElementById('btn-camera-estoque-txt');
+            if(txt) txt.innerText = "Escanear Código para Cadastrar / Repor";
         }
 
-        function carregarDadosProdutoSeExistir() {
-            const codigoInput = document.getElementById('codigoBarras').value.trim();
-            if(!codigoInput) return;
+        function processarLeituraEstoque(codigo) {
+            const produtos = obtainingDB = obterProdutosDB();
+            const prodExistente = produtos.find(p => p.codigo.toLowerCase() === codigo.toLowerCase());
 
-            const produtos = obterProdutosDB();
-            const prod = produtos.find(p => p.codigo.toLowerCase() === codigoInput.toLowerCase());
+            if (prodExistente) {
+                // Preenche os campos para permitir edição rápida
+                document.getElementById('codigoBarras').value = prodExistente.codigo;
+                document.getElementById('nomeProduto').value = prodExistente.nome;
+                document.getElementById('precoProduto').value = prodExistente.preco;
+                document.getElementById('estoqueProduto').value = prodExistente.estoque;
+                document.getElementById('categoriaProduto').value = prodExistente.categoria;
 
-            if (prod) {
-                document.getElementById('nomeProduto').value = prod.nome;
-                document.getElementById('precoProduto').value = prod.preco;
-                document.getElementById('estoqueProduto').value = prod.estoque;
-                document.getElementById('categoriaProduto').value = prod.categoria;
+                // Destaca na tabela
+                document.getElementById('filtroEstoque').value = codigo;
+                carregarProdutos();
+
+                alert(`Produto Encontrado no Banco:\n\nNome: ${prodExistente.nome}\nEstoque Atual: ${prodExistente.estoque} un\n\nVocê pode alterar a quantidade ou preço no formulário acima.`);
+            } else {
+                // Produto novo: preenche o código para facilitar cadastro
+                document.getElementById('codigoBarras').value = codigo;
+                document.getElementById('nomeProduto').value = '';
+                document.getElementById('precoProduto').value = '';
+                document.getElementById('estoqueProduto').value = '';
+                document.getElementById('categoriaProduto').value = '';
+                document.getElementById('nomeProduto').focus();
+
+                alert(`Novo Código Escaneado: ${codigo}\n\nPreencha o nome, preço e quantidade para salvar no estoque.`);
             }
         }
 
@@ -652,7 +691,7 @@
             }
         }
 
-        // --- GESTÃO DE PRODUTOS ---
+        // --- GESTÃO E CONTROLE DE ESTOQUE DE PRODUTOS ---
         function salvarProduto(e) {
             e.preventDefault();
             const codigo = document.getElementById('codigoBarras').value.trim();
@@ -674,7 +713,7 @@
             document.getElementById('formProduto').reset();
             carregarProdutos();
             atualizarSelectProdutos();
-            alert("Produto cadastrado/atualizado com sucesso no estoque!");
+            alert("Produto salvo com sucesso no banco de dados do estoque!");
         }
 
         function carregarProdutos() {
@@ -689,48 +728,101 @@
                 p.categoria.toLowerCase().includes(termo)
             );
 
+            if (produtos.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">Nenhum produto encontrado.</td></tr>`;
+                return;
+            }
+
             produtos.forEach((p) => {
                 const estoqueClasse = p.estoque <= 5 ? 'text-rose-600 font-bold bg-rose-50' : 'text-slate-700';
                 corpo.innerHTML += `
                     <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="py-2.5 px-4 font-mono text-xs font-semibold">${p.codigo}</td>
-                        <td class="py-2.5 px-4 font-medium">${p.nome}</td>
-                        <td class="py-2.5 px-4"><span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">${p.categoria}</span></td>
-                        <td class="py-2.5 px-4 text-center ${estoqueClasse}">${p.estoque} un</td>
+                        <td class="py-2.5 px-4 font-mono text-xs font-semibold text-slate-800">${p.codigo}</td>
+                        <td class="py-2.5 px-4 font-medium text-slate-900">${p.nome}</td>
+                        <td class="py-2.5 px-4"><span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded border border-slate-200">${p.categoria}</span></td>
+                        
+                        <!-- Ajuste Digitável e Direto do Estoque -->
+                        <td class="py-2.5 px-4 text-center">
+                            <div class="inline-flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200">
+                                <button onclick="alterarEstoqueRapido('${p.codigo}', -1)" class="w-6 h-6 rounded bg-slate-200 hover:bg-rose-500 hover:text-white font-bold text-xs flex items-center justify-center transition" title="Diminuir 1 un">-</button>
+                                <input type="number" value="${p.estoque}" min="0" onchange="atualizarEstoqueDireto('${p.codigo}', this.value)" 
+                                    class="w-14 text-center text-xs font-bold bg-white border border-slate-300 rounded py-0.5 focus:ring-1 focus:ring-blue-500 ${estoqueClasse}">
+                                <button onclick="alterarEstoqueRapido('${p.codigo}', 1)" class="w-6 h-6 rounded bg-slate-200 hover:bg-emerald-500 hover:text-white font-bold text-xs flex items-center justify-center transition" title="Aumentar 1 un">+</button>
+                            </div>
+                        </td>
+
                         <td class="py-2.5 px-4 text-right font-bold text-slate-900">R$ ${p.preco.toFixed(2)}</td>
-                        <td class="py-2.5 px-4 text-center flex justify-center gap-2">
-                            <button onclick="editarProduto('${p.codigo}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition" title="Editar">
-                                <i class="fa-solid fa-pen-to-square"></i> Editar
-                            </button>
-                            <button onclick="excluirProduto('${p.codigo}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition" title="Excluir">
-                                <i class="fa-solid fa-trash-can"></i> Excluir
-                            </button>
+                        
+                        <!-- Botões de Ação no Estoque -->
+                        <td class="py-2.5 px-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="preencherFormEdicao('${p.codigo}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition flex items-center gap-1" title="Editar informações completos">
+                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                </button>
+                                <button onclick="excluirProdutoDoEstoque('${p.codigo}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition flex items-center gap-1" title="Excluir este produto do banco">
+                                    <i class="fa-solid fa-trash-can"></i> Excluir
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        function editarProduto(codigo) {
+        // Alteração Rápida via Botoes (+ / -)
+        function alterarEstoqueRapido(codigo, delta) {
+            let produtos = obterProdutosDB();
+            const idx = produtos.findIndex(p => p.codigo === codigo);
+            if (idx !== -1) {
+                produtos[idx].estoque = Math.max(0, produtos[idx].estoque + delta);
+                salvarProdutosDB(produtos);
+                carregarProdutos();
+                atualizarSelectProdutos();
+            }
+        }
+
+        // Alteração Digitável Direta na Tabela
+        function atualizarEstoqueDireto(codigo, valor) {
+            const novaQtd = parseInt(valor);
+            if (isNaN(novaQtd) || novaQtd < 0) {
+                alert("Insira uma quantidade válida!");
+                carregarProdutos();
+                return;
+            }
+            let produtos = obterProdutosDB();
+            const idx = produtos.findIndex(p => p.codigo === codigo);
+            if (idx !== -1) {
+                produtos[idx].estoque = novaQtd;
+                salvarProdutosDB(produtos);
+                carregarProdutos();
+                atualizarSelectProdutos();
+            }
+        }
+
+        function preencherFormEdicao(codigo) {
             const produtos = obterProdutosDB();
-            const prod = produtos.find(p => p.codigo === codigo);
-            if (prod) {
-                document.getElementById('codigoBarras').value = prod.codigo;
-                document.getElementById('nomeProduto').value = prod.nome;
-                document.getElementById('precoProduto').value = prod.preco;
-                document.getElementById('estoqueProduto').value = prod.estoque;
-                document.getElementById('categoriaProduto').value = prod.categoria;
+            const p = produtos.find(item => item.codigo === codigo);
+            if(p) {
+                document.getElementById('codigoBarras').value = p.codigo;
+                document.getElementById('nomeProduto').value = p.nome;
+                document.getElementById('precoProduto').value = p.preco;
+                document.getElementById('estoqueProduto').value = p.estoque;
+                document.getElementById('categoriaProduto').value = p.categoria;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
-        function excluirProduto(codigo) {
-            if(confirm(`Tem certeza de que deseja excluir permanentemente o produto (Código: ${codigo}) do estoque?`)) {
-                let produtos = obterProdutosDB().filter(p => p.codigo !== codigo);
-                salvarProdutosDB(produtos);
+        // Excluir Produto Definitivamente do Estoque
+        function excluirProdutoDoEstoque(codigo) {
+            const produtos = obterProdutosDB();
+            const p = produtos.find(item => item.codigo === codigo);
+            const nomeProd = p ? p.nome : codigo;
+
+            if(confirm(`Tem certeza que deseja excluir o produto "${nomeProd}" (Código: ${codigo}) do seu estoque?`)) {
+                let produtosAtualizados = produtos.filter(p => p.codigo !== codigo);
+                salvarProdutosDB(produtosAtualizados);
                 carregarProdutos();
                 atualizarSelectProdutos();
-                alert("Produto excluído do estoque com sucesso!");
             }
         }
 
@@ -740,7 +832,7 @@
             select.innerHTML = '<option value="">Selecione um produto cadastrado...</option>';
             const produtos = obterProdutosDB();
             produtos.forEach((p, idx) => {
-                select.innerHTML += `<option value="${idx}">${p.nome} (${p.codigo}) - R$ ${p.preco.toFixed(2)}</option>`;
+                select.innerHTML += `<option value="${idx}">${p.nome} (${p.codigo}) - Estq: ${p.estoque} un - R$ ${p.preco.toFixed(2)}</option>`;
             });
         }
 
@@ -867,7 +959,7 @@
             }
         }
 
-        // --- FINALIZAÇÃO E EMISSÃO DE RECIBO ---
+        // --- FINALIZAÇÃO E EMISSÃO DE RECIBOS/COMPROVANTES ---
         function finalizarPagamento() {
             const carrinho = obterCarrinho();
             if (carrinho.length === 0) {
@@ -884,7 +976,7 @@
                 return;
             }
 
-            // Dar baixa no estoque
+            // Dar baixa automatica no estoque
             let produtos = obterProdutosDB();
             carrinho.forEach(item => {
                 const idx = produtos.findIndex(p => p.codigo === item.codigo);
@@ -894,7 +986,7 @@
             });
             salvarProdutosDB(produtos);
 
-            // Salvar no Histórico
+            // Salvar no Histórico de Vendas
             const venda = {
                 id: Date.now(),
                 data: new Date().toLocaleString('pt-BR'),
@@ -909,66 +1001,114 @@
             historico.unshift(venda);
             localStorage.setItem('carlamitertech_historico', JSON.stringify(historico));
 
-            ultimaVendaEmitida = venda;
-
-            // Limpar Carrinho
+            // Limpar Carrinho do PDV
             localStorage.removeItem('carlamitertech_carrinho');
             document.getElementById('valorRecebido').value = '';
             carregarCarrinho();
             carregarProdutos();
             carregarHistorico();
 
-            // Abrir Modal de Recibo Impresso
-            abrirModalRecibo(venda);
+            // Abrir Modal do Comprovante para Impressão
+            abrirModalComprovante(venda);
         }
 
-        function abrirModalRecibo(venda) {
-            ultimaVendaEmitida = venda;
-            const container = document.getElementById('modal-recibo-conteudo');
-            
-            let htmlItens = '';
+        // --- SISTEMA DE IMPRESSÃO DE COMPROVANTE ---
+        function abrirModalComprovante(venda) {
+            vendaAtualModal = venda;
+            const containerPreview = document.getElementById('preview-cupom-modal');
+            const containerImpressao = document.getElementById('cupom-impressao');
+
+            let itensHTML = '';
+            let itensPrint = '';
+
             venda.itens.forEach(item => {
-                htmlItens += `<div class="flex justify-between"><span>${item.qtd}x ${item.nome}</span><span>R$ ${item.subtotal.toFixed(2)}</span></div>`;
+                itensHTML += `
+                    <div class="flex justify-between my-1">
+                        <span>${item.qtd}x ${item.nome.substring(0, 18)}</span>
+                        <span>R$ ${item.subtotal.toFixed(2)}</span>
+                    </div>
+                `;
+                itensPrint += `
+                    <tr>
+                        <td style="padding: 2px 0;">${item.qtd}x ${item.nome.substring(0, 16)}</td>
+                        <td style="text-align: right; padding: 2px 0;">R$ ${item.subtotal.toFixed(2)}</td>
+                    </tr>
+                `;
             });
 
-            container.innerHTML = `
-                <div class="text-center font-bold border-b border-dashed border-slate-400 pb-2">
-                    <p>CARLAMITERTECH SUPERMERCADO</p>
-                    <p class="text-[10px] font-normal">CNPJ: 00.000.000/0001-00</p>
-                    <p class="text-[10px] font-normal">CUPOM NÃO FISCAL</p>
+            const cupomTextoModal = `
+                <div class="text-center font-bold text-sm mb-1">CARLAMITERTECH SUPERMERCADO</div>
+                <div class="text-center text-[10px] text-slate-500 mb-2">Poços de Caldas - MG | CNPJ: 00.000.000/0001-00</div>
+                <div class="text-center font-bold border-y border-dashed border-slate-300 py-1 mb-2">COMPROVANTE NÃO FISCAL</div>
+                <div class="text-[11px] mb-1">Data: ${venda.data}</div>
+                <div class="text-[11px] mb-2">Cupom Nº: #${venda.id}</div>
+                <div class="border-t border-dashed border-slate-300 pt-2">
+                    ${itensHTML}
                 </div>
-                <div class="text-[10px] border-b border-dashed border-slate-400 pb-2 space-y-0.5">
-                    <p>Data: ${venda.data}</p>
-                    <p>Cupom: #${venda.id}</p>
+                <div class="border-t border-dashed border-slate-300 mt-2 pt-2 flex justify-between font-bold text-sm">
+                    <span>TOTAL:</span>
+                    <span>R$ ${venda.total.toFixed(2)}</span>
                 </div>
-                <div class="space-y-1 border-b border-dashed border-slate-400 pb-2">
-                    <p class="font-bold">ITENS DA COMPRA:</p>
-                    ${htmlItens}
+                <div class="flex justify-between text-[11px] mt-1">
+                    <span>Pagamento:</span>
+                    <span>${venda.formaPagamento}</span>
                 </div>
-                <div class="space-y-0.5 border-b border-dashed border-slate-400 pb-2">
-                    <div class="flex justify-between font-bold text-sm"><span>TOTAL:</span><span>R$ ${venda.total.toFixed(2)}</span></div>
-                    <div class="flex justify-between text-[10px]"><span>Forma de Pagto:</span><span>${venda.formaPagamento}</span></div>
-                    ${venda.formaPagamento === 'Dinheiro' ? `
-                        <div class="flex justify-between text-[10px]"><span>Dinheiro Recebido:</span><span>R$ ${venda.valorRecebido.toFixed(2)}</span></div>
-                        <div class="flex justify-between text-[10px]"><span>Troco:</span><span>R$ ${venda.troco.toFixed(2)}</span></div>
-                    ` : ''}
-                </div>
-                <div class="text-center text-[10px] pt-1">
-                    <p>Obrigado pela preferência!</p>
-                    <p>Volte Sempre!</p>
+                ${venda.formaPagamento === 'Dinheiro' ? `
+                    <div class="flex justify-between text-[11px]">
+                        <span>Recebido:</span>
+                        <span>R$ ${venda.valorRecebido.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between text-[11px]">
+                        <span>Troco:</span>
+                        <span>R$ ${venda.troco.toFixed(2)}</span>
+                    </div>
+                ` : ''}
+                <div class="text-center text-[10px] text-slate-500 mt-4 border-t border-dashed border-slate-300 pt-2">
+                    Obrigado pela preferência! Volte sempre.
                 </div>
             `;
 
-            document.getElementById('modalRecibo').classList.remove('hidden');
+            containerPreview.innerHTML = cupomTextoModal;
+
+            // Formatação Exclusiva para a Impressora Térmica
+            containerImpressao.innerHTML = `
+                <div style="text-align: center; font-weight: bold; font-size: 13px;">CARLAMITERTECH SUPERMERCADO</div>
+                <div style="text-align: center; font-size: 9px; margin-bottom: 5px;">Poços de Caldas - MG | CNPJ: 00.000.000/0001-00</div>
+                <div style="text-align: center; font-weight: bold; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 3px 0; margin-bottom: 5px;">COMPROVANTE DE COMPRA</div>
+                <div>Data/Hora: ${venda.data}</div>
+                <div>Cupom Nº: #${venda.id}</div>
+                <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+                <table style="width: 100%; font-size: 10px; border-collapse: collapse;">
+                    ${itensPrint}
+                </table>
+                <hr style="border: none; border-top: 1px dashed #000; margin: 5px 0;">
+                <div style="font-weight: bold; font-size: 12px; display: flex; justify-content: space-between;">
+                    <span>TOTAL:</span>
+                    <span>R$ ${venda.total.toFixed(2)}</span>
+                </div>
+                <div>Forma Pagto: ${venda.formaPagamento}</div>
+                ${venda.formaPagamento === 'Dinheiro' ? `
+                    <div>Valor Recebido: R$ ${venda.valorRecebido.toFixed(2)}</div>
+                    <div>Troco: R$ ${venda.troco.toFixed(2)}</div>
+                ` : ''}
+                <div style="text-align: center; font-size: 9px; margin-top: 15px;">Obrigado pela preferência e volte sempre!</div>
+            `;
+
+            document.getElementById('modal-comprovante').classList.remove('hidden');
         }
 
-        function fecharModalRecibo() {
-            document.getElementById('modalRecibo').classList.add('hidden');
+        function fecharModalComprovante() {
+            document.getElementById('modal-comprovante').classList.add('hidden');
+            vendaAtualModal = null;
         }
 
-        function baixarReciboPDFAtual() {
-            if (ultimaVendaEmitida) {
-                gerarReciboPDF(ultimaVendaEmitida);
+        function imprimirCupomAtual() {
+            window.print();
+        }
+
+        function baixarPDFModal() {
+            if(vendaAtualModal) {
+                gerarReciboPDF(vendaAtualModal);
             }
         }
 
@@ -1020,7 +1160,7 @@
             y += 8;
             doc.text('Obrigado pela preferência e volte sempre!', 40, y, { align: 'center' });
 
-            doc.save(`Recibo_Carlamitertech_${venda.id}.pdf`);
+            doc.save(`Comprovante_Carlamitertech_${venda.id}.pdf`);
         }
 
         // --- RELATÓRIOS & HISTÓRICO ---
@@ -1030,6 +1170,7 @@
             corpo.innerHTML = '';
 
             const historico = JSON.parse(localStorage.getItem('carlamitertech_historico') || '[]');
+            
             let totalGeralVendas = 0;
             
             historico.forEach(venda => {
@@ -1037,21 +1178,24 @@
                 corpo.innerHTML += `
                     <tr class="hover:bg-slate-50 border-b border-slate-100">
                         <td class="py-2.5 px-4 font-medium text-xs">${venda.data}</td>
-                        <td class="py-2.5 px-4"><span class="bg-blue-50 text-blue-700 font-semibold text-xs px-2 py-0.5 rounded">${venda.formaPagamento}</span></td>
+                        <td class="py-2.5 px-4"><span class="bg-blue-50 text-blue-700 font-semibold text-xs px-2 py-0.5 rounded border border-blue-100">${venda.formaPagamento}</span></td>
                         <td class="py-2.5 px-4 text-center font-bold text-xs">${venda.itens.length}</td>
                         <td class="py-2.5 px-4 text-right font-black text-slate-900">R$ ${venda.total.toFixed(2)}</td>
-                        <td class="py-2.5 px-4 text-center flex justify-center gap-2">
-                            <button onclick='abrirModalRecibo(${JSON.stringify(venda)})' class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition" title="Imprimir Cupom">
-                                <i class="fa-solid fa-print"></i>
-                            </button>
-                            <button onclick='gerarReciboPDF(${JSON.stringify(venda)})' class="text-emerald-600 hover:text-emerald-800 text-xs font-semibold px-2 py-1 rounded hover:bg-emerald-50 transition" title="Baixar PDF">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </button>
+                        <td class="py-2.5 px-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick='abrirModalComprovante(${JSON.stringify(venda)})' class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-print"></i> Imprimir Comprovante
+                                </button>
+                                <button onclick='gerarReciboPDF(${JSON.stringify(venda)})' class="text-slate-600 hover:text-slate-800 text-xs font-semibold px-2 py-1 rounded hover:bg-slate-100 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-file-pdf"></i> PDF
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             });
 
+            // Atualizar Métricas na Tela
             const qtdVendas = historico.length;
             const ticketMedio = qtdVendas > 0 ? (totalGeralVendas / qtdVendas) : 0;
 
