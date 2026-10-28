@@ -415,7 +415,7 @@
     <script>
         let html5Qrcode = null;
 
-        // Produtos Iniciais Padrão para Demonstração
+        // Produtos Iniciais Padrão para Demonstração (apenas se o banco estiver vazio)
         const produtosIniciais = [
             { codigo: "78910001", nome: "Arroz Tipo 1 5kg", preco: 26.90, categoria: "Alimentos", estoque: 40 },
             { codigo: "78910002", nome: "Feijão Carioca 1kg", preco: 7.50, categoria: "Alimentos", estoque: 85 },
@@ -451,7 +451,7 @@
             document.getElementById(`tab-${aba}`).classList.add('active');
         }
 
-        // --- BANCO DE DADOS LOCALSTORAGE ---
+        // --- BANCO DE DADOS LOCALSTORAGE (Persistente) ---
         function inicializarBanco() {
             if (!localStorage.getItem('carlamitertech_produtos')) {
                 localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtosIniciais));
@@ -467,7 +467,7 @@
             localStorage.setItem('carlamitertech_produtos', JSON.stringify(produtos));
         }
 
-        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE VIA CÂMERA (DIRETO NA TRASEIRA) ---
+        // --- LEITOR DE CÓDIGO DE BARRAS / QR CODE VIA CÂMERA ---
         function alternarLeitor() {
             const wrapper = document.getElementById('reader-wrapper');
             if (wrapper.classList.contains('hidden')) {
@@ -559,7 +559,7 @@
             }
         }
 
-        // --- GESTÃO DE PRODUTOS ---
+        // --- GESTÃO DE PRODUTOS (Salvar, Atualizar e Excluir com Persistência) ---
         function salvarProduto(e) {
             e.preventDefault();
             const codigo = document.getElementById('codigoBarras').value.trim();
@@ -572,16 +572,19 @@
             const idxExistente = produtos.findIndex(p => p.codigo === codigo);
 
             if (idxExistente !== -1) {
+                // Atualiza produto existente
                 produtos[idxExistente] = { codigo, nome, preco, estoque, categoria };
+                alert("Produto atualizado com sucesso no banco de dados!");
             } else {
+                // Insere novo produto
                 produtos.push({ codigo, nome, preco, estoque, categoria });
+                alert("Produto cadastrado com sucesso no banco de dados!");
             }
 
             salvarProdutosDB(produtos);
             document.getElementById('formProduto').reset();
             carregarProdutos();
             atualizarSelectProdutos();
-            alert("Produto salvo com sucesso no banco de dados!");
         }
 
         function carregarProdutos() {
@@ -596,7 +599,12 @@
                 p.categoria.toLowerCase().includes(termo)
             );
 
-            produtos.forEach((p, index) => {
+            if (produtos.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 text-xs">Nenhum produto encontrado.</td></tr>`;
+                return;
+            }
+
+            produtos.forEach((p) => {
                 const estoqueClasse = p.estoque <= 5 ? 'text-rose-600 font-bold bg-rose-50' : 'text-slate-700';
                 corpo.innerHTML += `
                     <tr class="hover:bg-slate-50 border-b border-slate-100">
@@ -605,9 +613,12 @@
                         <td class="py-2.5 px-4"><span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">${p.categoria}</span></td>
                         <td class="py-2.5 px-4 text-center ${estoqueClasse}">${p.estoque} un</td>
                         <td class="py-2.5 px-4 text-right font-bold text-slate-900">R$ ${p.preco.toFixed(2)}</td>
-                        <td class="py-2.5 px-4 text-center">
-                            <button onclick="excluirProduto('${p.codigo}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition">
-                                <i class="fa-solid fa-trash-can"></i> Excluir
+                        <td class="py-2.5 px-4 text-center flex items-center justify-center gap-1">
+                            <button onclick="editarProduto('${p.codigo}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-2 py-1 rounded hover:bg-blue-50 transition" title="Editar">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="excluirProduto('${p.codigo}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition" title="Excluir">
+                                <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
                     </tr>
@@ -615,8 +626,21 @@
             });
         }
 
+        function editarProduto(codigo) {
+            const produtos = obterProdutosDB();
+            const p = produtos.find(item => item.codigo === codigo);
+            if (p) {
+                document.getElementById('codigoBarras').value = p.codigo;
+                document.getElementById('nomeProduto').value = p.nome;
+                document.getElementById('precoProduto').value = p.preco;
+                document.getElementById('estoqueProduto').value = p.estoque;
+                document.getElementById('categoriaProduto').value = p.categoria;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
         function excluirProduto(codigo) {
-            if(confirm(`Deseja remover o produto código ${codigo}?`)) {
+            if(confirm(`Deseja realmente remover o produto código ${codigo} do banco de dados?`)) {
                 let produtos = obterProdutosDB().filter(p => p.codigo !== codigo);
                 salvarProdutosDB(produtos);
                 carregarProdutos();
@@ -774,7 +798,7 @@
                 return;
             }
 
-            // Dar baixa no estoque
+            // Dar baixa no estoque e salvar no banco de dados persistente
             let produtos = obterProdutosDB();
             carrinho.forEach(item => {
                 const idx = produtos.findIndex(p => p.codigo === item.codigo);
@@ -807,6 +831,7 @@
             document.getElementById('valorRecebido').value = '';
             carregarCarrinho();
             carregarProdutos();
+            atualizarSelectProdutos();
             carregarHistorico();
 
             alert("Venda realizada e concluída com sucesso!");
@@ -814,7 +839,7 @@
 
         function gerarReciboPDF(venda) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ unit: 'mm', format: [80, 150] }); // Formato Cupom Não Fiscal
+            const doc = new jsPDF({ unit: 'mm', format: [80, 150] });
 
             doc.setFont('Helvetica', 'bold');
             doc.setFontSize(11);
@@ -873,6 +898,10 @@
             
             let totalGeralVendas = 0;
             
+            if (historico.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400 text-xs">Nenhuma venda registrada ainda.</td></tr>`;
+            }
+
             historico.forEach(venda => {
                 totalGeralVendas += venda.total;
                 corpo.innerHTML += `
@@ -905,3 +934,4 @@
     </script>
 </body>
 </html>
+
