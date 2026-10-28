@@ -276,7 +276,7 @@
                 </form>
             </div>
 
-            <!-- Tabela de Produtos Cadastrados (Otimizada para Celular com Cards / Scroll) -->
+            <!-- Tabela de Produtos Cadastrados -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                     <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
@@ -289,12 +289,10 @@
                     </div>
                 </div>
 
-                <!-- Visualização em Cards para Telas Pequenas / Celular -->
-                <div id="listaProdutosMobile" class="space-y-3 sm:hidden">
-                    <!-- Preenchido via JS com cards individuais para fácil visualização e exclusão -->
-                </div>
+                <!-- Cards Mobile -->
+                <div id="listaProdutosMobile" class="space-y-3 sm:hidden"></div>
 
-                <!-- Tabela Tradicional para Telas Maiores (Tablet / Desktop) -->
+                <!-- Tabela Desktop -->
                 <div class="hidden sm:block border border-slate-200 rounded-xl overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
                         <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
@@ -307,9 +305,7 @@
                                 <th class="py-3 px-4 text-center">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="corpoProdutos" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Preenchido dinamicamente -->
-                        </tbody>
+                        <tbody id="corpoProdutos" class="divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -334,10 +330,17 @@
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Histórico Transacional de Cupons Emitidos
-                </h3>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Histórico Transacional de Cupons Emitidos
+                    </h3>
+                    
+                    <!-- Botão para Baixar Histórico em PDF -->
+                    <button onclick="baixarHistoricoPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl shadow-sm transition flex items-center gap-2 text-xs">
+                        <i class="fa-solid fa-file-pdf"></i> Baixar Histórico em PDF
+                    </button>
+                </div>
 
                 <div class="border border-slate-200 rounded-xl overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
@@ -912,6 +915,57 @@
             doc.text('Obrigado pela preferência e volte sempre!', 40, y, { align: 'center' });
 
             doc.save(`Recibo_Carlamitertech_${venda.id}.pdf`);
+        }
+
+        // --- BAIXAR HISTÓRICO COMPLETO EM PDF ---
+        function baixarHistoricoPDF() {
+            const historico = JSON.parse(localStorage.getItem('carlamitertech_historico') || '[]');
+            if (historico.length === 0) {
+                alert("Não há histórico de vendas para exportar.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Cabeçalho do Relatório A4
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.text('CARLAMITERTECH - RELATÓRIO DE VENDAS', 14, 15);
+
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 22);
+            doc.text(`Operador: Carla Miter | Terminal #01`, 14, 28);
+
+            let totalGeral = 0;
+            const dadosTabela = historico.map(v => {
+                totalGeral += v.total;
+                return [
+                    v.data,
+                    v.formaPagamento,
+                    v.itens.length + ' item(ns)',
+                    `R$ ${v.total.toFixed(2)}`
+                ];
+            });
+
+            // Tabela com autotable
+            doc.autoTable({
+                startY: 35,
+                head: [['Data / Hora', 'Forma de Pagamento', 'Qtd Itens', 'Valor Total']],
+                body: dadosTabela,
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235] },
+                styles: { fontSize: 9 }
+            });
+
+            // Total geral ao final
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.text(`TOTAL ACUMULADO DE VENDAS: R$ ${totalGeral.toFixed(2)}`, 14, finalY);
+
+            doc.save(`Relatorio_Vendas_Carlamitertech_${Date.now()}.pdf`);
         }
 
         function carregarHistorico() {
